@@ -27,7 +27,7 @@ GetPredictedInputValues(lyrOut.PredictiveCells.ToArray(), 3): Retrieves the pred
 HTM's capacity to forecast future patterns based on previously trained data patterns.HTM's capacity to forecast future patterns based on previously trained data patterns. After a few 
 cycles, HTM receives a unique pattern that compares the prior patterns to the current pattern.
 
-#Steps to be Implemented
+#Steps to be Implemented:
             •	The project will follow these steps to achieve the desired image reconstruction:
             •	Load Images from a Folder: Use a dataset of images to serve as input for the experiment.
             •	Encode Images Using ImageEncoder: Convert the input images into SDRs using the ImageEncoder, which is based on the ImageBinarizer NuGet package.
