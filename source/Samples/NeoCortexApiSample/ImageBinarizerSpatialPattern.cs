@@ -72,7 +72,7 @@ namespace NeoCortexApiSample
 
             int numColumns = 64 * 64;
             //Accessing the Image Folder form the Cureent Directory
-            string trainingFolder = "Sample\\TestFiles";
+            string trainingFolder = $"Sample";
             //Accessing the Image Folder form the Cureent Directory Foldfer
             var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
             //Image Size
@@ -157,7 +157,7 @@ namespace NeoCortexApiSample
         private void RunRustructuringExperiment(SpatialPooler sp)
         {
             // Path to the folder containing training images
-            string trainingFolder = "Sample\\TestFiles";
+            string trainingFolder = $"Sample";
             // Get all image files matching the specified prefix
             var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
             // Size of the images
@@ -329,4 +329,3 @@ namespace NeoCortexApiSample
         }
     }
 }
-
