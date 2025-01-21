@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	
+	<ItemGroup>
+		<Reference Include="ImageBinarizer">
+			<HintPath>bin\Debug\net8.0\ImageBinarizer.dll</HintPath>
+		</Reference>
+	</ItemGroup>
 
 	<PropertyGroup>
     <OutputType>Exe</OutputType>
