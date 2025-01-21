@@ -8,5 +8,6 @@ namespace NeoCortexApiSample
 {
     internal class ImageReconstructorWithClassifiers
     {
+
     }
 }
