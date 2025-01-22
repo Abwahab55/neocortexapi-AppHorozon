@@ -15,7 +15,7 @@ namespace NeoCortexApiSample
         public string inputPrefix { get; private set; }
 
         /// <summary>
-        /// Implements an experiment that demonstrates how to learn spatial patterns.
+        /// Implemention of an experiment that demonstrates how to learn spatial patterns.
         /// SP will learn every presented Image input in multiple iterations.
         /// </summary>
         public void Run()
