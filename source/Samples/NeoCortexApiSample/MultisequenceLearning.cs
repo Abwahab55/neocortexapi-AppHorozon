@@ -47,11 +47,11 @@ namespace NeoCortexApiSample
                 ActivationThreshold = 15,
                 ConnectedPermanence = 0.5,
 
-                // Learning is slower than forgetting in this case.
+                //Learning is slower than forgetting in this case.
                 PermanenceDecrement = 0.25,
                 PermanenceIncrement = 0.15,
 
-                // Used by punishing of segments.
+                //Used by punishing of segments.
                 PredictedSegmentDecrement = 0.1
             };
 
@@ -118,7 +118,7 @@ namespace NeoCortexApiSample
             sp.Init(mem);
             tm.Init(mem);
 
-            // Please note that we do not add here TM in the layer.
+            // Please note that we don't add here TM in the layer.
             // This is omitted for practical reasons, because we first eneter the newborn-stage of the algorithm
             // In this stage we want that SP get boosted and see all elements before we start learning with TM.
             // All would also work fine with TM in layer, but it would work much slower.
