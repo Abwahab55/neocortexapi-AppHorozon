@@ -272,7 +272,7 @@ namespace NeoCortexApiSample
                 Directory.CreateDirectory(folderPath);
             }
 
-            // Define the file name
+            // Defining the file name
             string fileName = "combined_similarity_plot_Image_Inputs.png";
 
             // Define the file path with the folder path and file name
