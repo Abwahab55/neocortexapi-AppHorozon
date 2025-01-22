@@ -187,7 +187,7 @@ namespace NeoCortexApiSample
                 bool isLearningCompleted = false;
 
                 //
-                // Now training with SP+TM. SP is pretrained on the given input pattern set.
+                //Now training with SP+TM. SP is pretrained on the given input pattern set.
                 for (int i = 0; i < maxCycles; i++)
                 {
                     matches = 0;
