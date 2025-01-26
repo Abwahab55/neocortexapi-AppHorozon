@@ -27,7 +27,6 @@ GetPredictedInputValues(lyrOut.PredictiveCells.ToArray(), 3): Retrieves the pred
 cycles, HTM receives a unique pattern that compares the prior patterns to the current patter.Through a process known as spatial pooling, HTM models simulate the activation of dendritic segments based on the input data, resulting in Sparse Distributed Representations (SDRs) that
 capture the underlying patterns within the data.
 
-
 #Sparse Distributed representations (SDRs)
 Sparse Distributed representations (SDRs) of input patterns are used in HTM's language. With a set amount of active bits,it produces SDRs internally.These bits have semantic value.As a result, two inputs with equivalent semantic meaning must have equal active bit representation in SDR, which plays
 an important role in HTM learning.
