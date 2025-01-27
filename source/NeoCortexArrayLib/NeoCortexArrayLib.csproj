@@ -15,4 +15,8 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="DotNetActors" Version="1.0.3" />
+  </ItemGroup>
+
 </Project>
