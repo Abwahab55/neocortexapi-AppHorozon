@@ -37,7 +37,7 @@ HTM: Focused on temporal learning and is ideal for applications involving time-s
 KNN: A simple, distance-based algorithm used for classification and regression in static datasets. It’s a straightforward, non-parametric method without temporal capabilities.
 Both approaches are suited to different problem domains and should be chosen based on the data type and application requirements.
 
-#Steps to be Implemented
+#Steps to be Implemented:
             •	The project will follow these steps to achieve the desired image reconstruction:
             •	Load Images from a Folder: Use a dataset of images to serve as input for the experiment.
             •	Encode Images Using ImageEncoder: Convert the input images into SDRs using the ImageEncoder, which is based on the ImageBinarizer NuGet package.
