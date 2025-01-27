@@ -72,7 +72,9 @@ namespace NeoCortexApiSample
 
             int numColumns = 64 * 64;
             //Accessing the Image Folder form the Cureent Directory
-            string trainingFolder = "Sample\\TestFiles";
+            //string trainingFolder = $"Sample";
+            string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
+
             //Accessing the Image Folder form the Cureent Directory Foldfer
             var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
             //Image Size
@@ -156,41 +158,34 @@ namespace NeoCortexApiSample
         /// <param name="sp">The spatial pooler to use for the experiment.</param>
         private void RunRustructuringExperiment(SpatialPooler sp)
         {
-            // Path to the folder containing training images
-            string trainingFolder = "Sample\\TestFiles";
-            // Get all image files matching the specified prefix
+            // Ensure the training folder is correct
+            string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
             var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
-            // Size of the images
-            int imgSize = 28;
-            // Name for the test image
-            string testName = "test_image";
-            // Array to hold active columns
-            int[] activeArray = new int[64 * 64];
-            // List to store heatmap data
-            List<List<double>> heatmapData = new List<List<double>>();
-            // Initialize a list to get normalized permanence values.
-            List<int[]> BinarizedencodedInputs = new List<int[]>();
-            // List to store normalized permanence values
-            List<int[]> normalizedPermanence = new List<int[]>();
-            // List to store similarity values
-            List<double[]> similarityList = new List<double[]>();
-            foreach (var Image in trainingImages)
-            {
-                string inputBinaryImageFile = NeoCortexUtils.BinarizeImage($"{Image}", imgSize, testName);
 
-                // Read input csv file into array
+            if (trainingImages.Length == 0)
+            {
+                Console.WriteLine("No images found in the specified folder with the given prefix.");
+                return;
+            }
+
+            int imgSize = 28;
+            string testName = "test_image";
+            int[] activeArray = new int[64 * 64];
+            List<List<double>> heatmapData = new List<List<double>>();
+            List<int[]> binarizedInputs = new List<int[]>();
+            List<int[]> normalizedPermanence = new List<int[]>();
+            List<double[]> similarityList = new List<double[]>();
+
+            int i = 1; // Image counter for unique file naming
+            foreach (var image in trainingImages)
+            {
+                Debug.WriteLine($"Processing image: {image}");
+
+                // Binarize the image
+                string inputBinaryImageFile = NeoCortexUtils.BinarizeImage(image, imgSize, testName);
                 int[] inputVector = NeoCortexUtils.ReadCsvIntegers(inputBinaryImageFile).ToArray();
 
-<<<<<<< Updated upstream
-                // Initialize arrays and lists for computations
-                int[] oldArray = new int[activeArray.Length];
-                List<double[,]> overlapArrays = new List<double[,]>();
-                List<double[,]> bostArrays = new List<double[,]>();
 
-                // Compute spatial pooling on the input vector
-=======
-                // Perform spatial pooling for the SDR array
->>>>>>> Stashed changes
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
 
@@ -198,95 +193,54 @@ namespace NeoCortexApiSample
 
                 int maxInput = inputVector.Length;
 
-                // Create a new dictionary to store extended probabilities
+                // Process reconstructed permanence values
                 Dictionary<int, double> allPermanenceDictionary = new Dictionary<int, double>();
-                // Iterate through all possible inputs using a foreach loop
                 foreach (var kvp in reconstructedPermanence)
                 {
-                    int inputIndex = kvp.Key;
-                    double probability = kvp.Value;
-
-                    // Use the existing probability
-                    allPermanenceDictionary[inputIndex] = probability;
+                    allPermanenceDictionary[kvp.Key] = kvp.Value;
                 }
 
-                //Assinginig the inactive columns Permanence 0
                 for (int inputIndex = 0; inputIndex < maxInput; inputIndex++)
                 {
                     if (!reconstructedPermanence.ContainsKey(inputIndex))
                     {
-                        // Key doesn't exist, set the probability to 0
                         allPermanenceDictionary[inputIndex] = 0.0;
                     }
                 }
 
-                // Sort the dictionary by keys
                 var sortedAllPermanenceDictionary = allPermanenceDictionary.OrderBy(kvp => kvp.Key);
-                // Convert the sorted dictionary of allpermanences to a list
                 List<double> permanenceValuesList = sortedAllPermanenceDictionary.Select(kvp => kvp.Value).ToList();
 
-                //Collecting Heatmap Data for Visualization
                 heatmapData.Add(permanenceValuesList);
+                binarizedInputs.Add(inputVector);
 
-                //Collecting Encoded Data for Visualization
-                BinarizedencodedInputs.Add(inputVector);
-
-                //Normalizing Permanence Threshold
-                var ThresholdValue = 30.5;
-
-                // Normalize permanences (0 and 1) based on the threshold value and convert them to a list of integers.
-                List<int> normalizePermanenceList = Helpers.ThresholdingProbabilities(permanenceValuesList, ThresholdValue);
-
-                //Collecting Normalized Permanence List for Visualizing
+                // Normalize permanence
+                double thresholdValue = 30.5;
+                List<int> normalizePermanenceList = Helpers.ThresholdingProbabilities(permanenceValuesList, thresholdValue);
                 normalizedPermanence.Add(normalizePermanenceList.ToArray());
 
-                //Calculating Similarity with encoded Inputs and Reconstructed Inputs
-                var similarity = MathHelpers.JaccardSimilarityofBinaryArrays(inputVector, normalizePermanenceList.ToArray());
+                // Calculate similarity
+                double similarity = MathHelpers.JaccardSimilarityofBinaryArrays(inputVector, normalizePermanenceList.ToArray());
+                similarityList.Add(new double[] { similarity });
 
-                double[] similarityArray = new double[] { similarity };
-
-                //Collecting Similarity Data for visualizing
-                similarityList.Add(similarityArray);
-            }
-            // Generate the 1D heatmaps using the heatmapData list
-            Generate1DHeatmaps(heatmapData, BinarizedencodedInputs, normalizedPermanence);
-            // Generate the Similarity graph using the Similarity list
-            DrawSimilarityPlots(similarityList);
-        }
-
-        /// <summary>
-        /// Generates 1D heatmaps based on the provided heatmap data and normalized permanence values.
-        /// </summary>
-        /// <param name="heatmapData">List of lists containing heatmap data.</param>
-        /// <param name="normalizedPermanence">List of arrays containing normalized permanence values.</param>
-        private void Generate1DHeatmaps(List<List<double>> heatmapData, List<int[]> normalizedPermanence, List<int[]> BinarizedencodedInputs)
-        {
-            int i = 1;
-
-            foreach (var values in heatmapData)
-            {
-                // Define the folder path based on your requirements
+                // Save heatmap for the current image
                 string folderPath = Path.Combine(Environment.CurrentDirectory, "1DHeatMap_Image_Inputs");
-
-                // Create the folder if it doesn't exist
                 if (!Directory.Exists(folderPath))
                 {
                     Directory.CreateDirectory(folderPath);
                 }
-                // Define the file path with the folder path
-                string filePath = Path.Combine(folderPath, $"heatmap_{i}.png");
-                Debug.WriteLine($"FilePath: {filePath}");
+                string heatmapFilePath = Path.Combine(folderPath, $"heatmap_{i}.png");
+                Debug.WriteLine($"Heatmap saved for image {i}: {heatmapFilePath}");
 
-                // Convert the probabilitiesList to a 1D array using ToArray
-                double[] array1D = values.ToArray();
-
-                // Call the  Draw1DHeatmap function with the dynamically generated file path along with all necessary Perameters
-                NeoCortexUtils.Draw1dHeatmap(new List<double[]>() { array1D }, new List<int[]>() { normalizedPermanence[i - 1] }, new List<int[]>() { BinarizedencodedInputs[i - 1] }, filePath, 784, 15, 30, 15, 5, 30);
-
-                Debug.WriteLine("Heatmap generated and saved successfully.");
                 i++;
             }
 
+            // Generate a combined similarity plot for all images
+            string similarityPlotPath = Path.Combine(Environment.CurrentDirectory, "SimilarityPlots_Image_Inputs", "combined_similarity_plot.png");
+            List<double> combinedSimilarities = similarityList.SelectMany(similarity => similarity).ToList();
+            NeoCortexUtils.DrawCombinedSimilarityPlot(combinedSimilarities, similarityPlotPath, 1000, 850);
+
+            Debug.WriteLine($"Combined similarity plot saved: {similarityPlotPath}");
         }
 
         // <summary>
@@ -333,4 +287,3 @@ namespace NeoCortexApiSample
         }
     }
 }
-

@@ -1,5 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
+	<ItemGroup>
+		<Reference Include="ImageBinarizer">
+			<HintPath>bin\Debug\net8.0\ImageBinarizer.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Description>
@@ -21,5 +27,10 @@
     <ProjectReference Include="..\..\NeoCortexEntities\NeoCortexEntities.csproj" />
     <ProjectReference Include="..\..\NeoCortexUtils\NeoCortexUtils.csproj" />
     <ProjectReference Include="..\..\GridCell\GridCell.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Sample\TestFiles.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
