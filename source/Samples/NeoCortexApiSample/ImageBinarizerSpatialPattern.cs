@@ -105,7 +105,7 @@ namespace NeoCortexApiSample
             //Initializing the Spatial Pooler Algorithm for SDR 
             sp.Init(mem, new DistributedMemory() { ColumnDictionary = new InMemoryDistributedDictionary<int, NeoCortexApi.Entities.Column>(1) });
 
-            //Image Size
+            //Image Size input
             int imgSize = 28;
             int[] activeArray = new int[numColumns];
 
@@ -118,7 +118,7 @@ namespace NeoCortexApiSample
             {
                 foreach (var Image in trainingImages)
                 {
-                    //Binarizing the Images before taking Inputs for the Sp
+                    //Binarizing the Images before taking Inputs for the Spatial Pooler
                     string inputBinaryImageFile = NeoCortexUtils.BinarizeImage($"{Image}", imgSize, testName);
 
                     // Read Binarized and Encoded input csv file into array
