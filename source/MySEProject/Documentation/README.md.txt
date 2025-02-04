@@ -19,7 +19,7 @@ Investigate Existing Classifiers: Analyze the performance of two existing classi
 Implement an Image Reconstruction Experiment: Create a new experiment inspired by the SpatialLearning experiment to reconstruct input images from SDRs using classifiers.
 Evaluate the Accuracy of Reconstruction: Measure the similarity between the original images and the reconstructed images using various similarity metrics.
 
-#Classifiers in HTM
+#Classifiers in HTM:
 In the HTM system, classifiers play a critical role in decoding the predictions made by the Spatial Pooler (SP) and Temporal Memory (TM). Classifiers map SDRs back to their corresponding input values, thereby enabling the reconstruction of original inputs. This process can be summarized as follows:
 INPUT -> ENCODER -> SP -> SDR -> CLASSIFIER -> INPUT
 The encoder converts raw input data (such as images) into a binary SDR format. The Spatial Pooler and Temporal Memory process the SDRs to identify patterns and make predictions. The classifier then takes the predicted SDRs and attempts to reconstruct the original input data.
@@ -30,11 +30,11 @@ cycles, HTM receives a unique pattern that compares the prior patterns to the cu
 capture the underlying patterns within the data.
 
 
-#Sparse Distributed representations (SDRs)
+#Sparse Distributed representations (SDRs):
 Sparse Distributed representations (SDRs) of input patterns are used in HTM's language. With a set amount of active bits,it produces SDRs internally.These bits have semantic value.As a result, two inputs with equivalent semantic meaning must have equal active bit representation in SDR, which plays
-an important role in HTM learning.
+an important role in HTM learning. SDRs are a way of encoding information using a large vector (often binary) in which only a small fraction of bits are active (set to 1), while the rest are inactive (set to 0).
 
-#Difference between HTM & KNN
+#Difference between HTM & KNN:
 HTM: Focused on temporal learning and is ideal for applications involving time-series data and sequences. It is biologically inspired and mimics brain-like structures.
 KNN: A simple, distance-based algorithm used for classification and regression in static datasets. It’s a straightforward, non-parametric method without temporal capabilities.
 Both approaches are suited to different problem domains and should be chosen based on the data type and application requirements.
