@@ -19,6 +19,7 @@ Investigate Existing Classifiers: Analyze the performance of two existing classi
 Implement an Image Reconstruction Experiment: Create a new experiment inspired by the SpatialLearning experiment to reconstruct input images from SDRs using classifiers.
 Evaluate the Accuracy of Reconstruction: Measure the similarity between the original images and the reconstructed images using various similarity metrics.
 
+
 #Classifiers in HTM
 In the HTM system, classifiers play a critical role in decoding the predictions made by the Spatial Pooler (SP) and Temporal Memory (TM). Classifiers map SDRs back to their corresponding input values, thereby enabling the reconstruction of original inputs. This process can be summarized as follows:
 INPUT -> ENCODER -> SP -> SDR -> CLASSIFIER -> INPUT
