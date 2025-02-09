@@ -78,6 +78,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNetActors" Version="1.0.3" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
    
   </ItemGroup>

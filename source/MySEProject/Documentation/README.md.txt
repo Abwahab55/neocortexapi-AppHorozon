@@ -1,4 +1,6 @@
 #ML 24/25-01 Investigate Image Reconstruction by using Classifiers
+[![Made with - C#](https://img.shields.io/badge/Made_with-C%23-2ea44f?style=for-the-badge&logo=C%23)](https://learn.microsoft.com/en-us/dotnet/csharp/)
+![Built With - ❤️](https://img.shields.io/badge/Built_With-❤️-2ea44f?style=for-the-badge&logo=Love)
 
 
 Project Overview:
@@ -11,6 +13,7 @@ Computer Vision: Reconstructing images from compressed representations.
 Data Compression: Developing efficient encoding and decoding techniques.
 Pattern Recognition:Enhancing the interpretability of machine learning models by visualizing learned representations.
 
+
 #Project Objectives:
 The primary objectives of this project are:
 Understand the Role of Classifiers in HTM:Explore how classifiers work within the HTM framework to decode SDRs.
@@ -18,7 +21,7 @@ Investigate Existing Classifiers: Analyze the performance of two existing classi
 Implement an Image Reconstruction Experiment: Create a new experiment inspired by the SpatialLearning experiment to reconstruct input images from SDRs using classifiers.
 Evaluate the Accuracy of Reconstruction: Measure the similarity between the original images and the reconstructed images using various similarity metrics.
 
-#Classifiers in HTM
+#Classifiers in HTM:
 In the HTM system, classifiers play a critical role in decoding the predictions made by the Spatial Pooler (SP) and Temporal Memory (TM). Classifiers map SDRs back to their corresponding input values, thereby enabling the reconstruction of original inputs. This process can be summarized as follows:
 INPUT-> ENCODER-> SP-> SDR->CLASSIFIER->INPUT
 The encoder converts raw input data (such as images) into a binary SDR format. The Spatial Pooler and Temporal Memory process the SDRs to identify patterns and make predictions. The classifier then takes the predicted SDRs and attempts to reconstruct the original input data.
@@ -28,12 +31,21 @@ GetPredictedInputValues(lyrOut.PredictiveCells.ToArray(), 3): Retrieves the pred
 cycles, HTM receives a unique pattern that compares the prior patterns to the current patter.Through a process known as spatial pooling, HTM models simulate the activation of dendritic segments based on the input data, resulting in Sparse Distributed Representations (SDRs) that
 capture the underlying patterns within the data.
 
+<<<<<<< HEAD
 #Sparse Distributed representations (SDRs)
-Sparse Distributed representations (SDRs) of input patterns are used in HTM's language. With a set amount of active bits,it produces SDRs internally.These bits have semantic value.As a result, two inputs with equivalent semantic meaning must have equal active bit representation in SDR, which plays
-an important role in HTM learning.
+=======
 
+#Sparse Distributed representations (SDRs):
+>>>>>>> cdc732835e87c4cd74085dea4418268679eb45f6
+Sparse Distributed representations (SDRs) of input patterns are used in HTM's language. With a set amount of active bits,it produces SDRs internally.These bits have semantic value.As a result, two inputs with equivalent semantic meaning must have equal active bit representation in SDR, which plays
+an important role in HTM learning. SDRs are a way of encoding information using a large vector (often binary) in which only a small fraction of bits are active (set to 1), while the rest are inactive (set to 0).
+
+<<<<<<< HEAD
 
 #Difference between HTM & KNN
+=======
+#Difference between HTM & KNN:
+>>>>>>> cdc732835e87c4cd74085dea4418268679eb45f6
 HTM: Focused on temporal learning and is ideal for applications involving time-series data and sequences. It is biologically inspired and mimics brain-like structures.
 KNN: A simple, distance-based algorithm used for classification and regression in static datasets. It’s a straightforward, non-parametric method without temporal capabilities.
 Both approaches are suited to different problem domains and should be chosen based on the data type and application requirements.
