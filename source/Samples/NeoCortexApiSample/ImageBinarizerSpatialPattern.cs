@@ -102,23 +102,23 @@ namespace NeoCortexApiSample
             // It creates the instance of Spatial Pooler Multithreaded version.
             SpatialPooler sp = new SpatialPooler(hpa);
 
-            //Initializing the Spatial Pooler Algorithm
+            //Initializing the Spatial Pooler Algorithm for SDR 
             sp.Init(mem, new DistributedMemory() { ColumnDictionary = new InMemoryDistributedDictionary<int, NeoCortexApi.Entities.Column>(1) });
 
-            //Image Size
+            //Image Size input
             int imgSize = 28;
             int[] activeArray = new int[numColumns];
 
             int numStableCycles = 0;
-            // Runnig the Traning Cycle for 5 times
-            int maxCycles = 5;
+            // Runnig the Traning Cycle for 6 times
+            int maxCycles = 6;
             int currentCycle = 0;
 
             while (!isInStableState && currentCycle < maxCycles)
             {
                 foreach (var Image in trainingImages)
                 {
-                    //Binarizing the Images before taking Inputs for the Sp
+                    //Binarizing the Images before taking Inputs for the Spatial Pooler
                     string inputBinaryImageFile = NeoCortexUtils.BinarizeImage($"{Image}", imgSize, testName);
 
                     // Read Binarized and Encoded input csv file into array
@@ -185,7 +185,7 @@ namespace NeoCortexApiSample
                 string inputBinaryImageFile = NeoCortexUtils.BinarizeImage(image, imgSize, testName);
                 int[] inputVector = NeoCortexUtils.ReadCsvIntegers(inputBinaryImageFile).ToArray();
 
-                // Perform spatial pooling
+
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
 
