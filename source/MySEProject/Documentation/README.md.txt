@@ -13,7 +13,6 @@ Computer Vision: Reconstructing images from compressed representations.
 Data Compression: Developing efficient encoding and decoding techniques.
 Pattern Recognition:Enhancing the interpretability of machine learning models by visualizing learned representations.
 
-
 #Project Objectives:
 The primary objectives of this project are:
 Understand the Role of Classifiers in HTM:Explore how classifiers work within the HTM framework to decode SDRs.
