@@ -79,7 +79,6 @@ namespace NeoCortexApiSample
         {
             Console.WriteLine(" Running Experiment...");
             var mem = new Connections(cfg);
-            bool isInStableState = false;
             int numColumns = 32 * 32;
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
 
@@ -87,7 +86,7 @@ namespace NeoCortexApiSample
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
             if (trainingImages.Length == 0)
             {
-                Console.WriteLine(" No images found in the 'Sample' folder.");
+                Console.WriteLine(" No images found in the specific  'Sample' folder.");
                 return null;
             }
 
