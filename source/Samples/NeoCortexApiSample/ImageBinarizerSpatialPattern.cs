@@ -1,4 +1,4 @@
-﻿using NeoCortex;
+﻿
 using NeoCortexApi.Entities;
 using NeoCortexApi.Utility;
 using NeoCortexApi;
@@ -93,7 +93,7 @@ namespace NeoCortexApiSample
 
             Console.WriteLine($" Found {trainingImages.Length} images in 'Sample' folder.");
 
-            string testName = "test_image";
+            
 
             HomeostaticPlasticityController hpa = new HomeostaticPlasticityController(mem, trainingImages.Length * 50,
                 (isStable, numPatterns, actColAvg, seenInputs) =>
