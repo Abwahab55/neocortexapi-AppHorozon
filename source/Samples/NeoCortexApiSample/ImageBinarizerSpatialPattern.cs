@@ -7,30 +7,24 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using OpenCvSharp;
 
 namespace NeoCortexApiSample
 {
     internal class ImageBinarizerSpatialPattern
     {
-        public string inputPrefix { get; private set; }
+        public string inputPrefix { get; private set; } = "";
 
-        /// <summary>
-        /// Implements an experiment that demonstrates how to learn spatial patterns.
-        /// SP will learn every presented Image input in multiple iterations.
-        /// </summary>
         public void Run()
         {
-            Console.WriteLine($"Hello NeocortexApi! Experiment {nameof(ImageBinarizerSpatialPattern)}");
+            Console.WriteLine($" Starting Experiment: {nameof(ImageBinarizerSpatialPattern)}");
 
             double minOctOverlapCycles = 1.0;
             double maxBoost = 5.0;
-            // We will build a slice of the cortex with the given number of mini-columns
-            int numColumns = 64 * 64;
-            // The Size of the Image Height and width is 28 pixel
+            int numColumns = 32 * 32;
             int imageSize = 28;
-            var colDims = new int[] { 64, 64 };
+            var colDims = new int[] { 32, 32 };
 
-            // This is a set of configuration parameters used in the experiment.
             HtmConfig cfg = new HtmConfig(new int[] { imageSize, imageSize }, new int[] { numColumns })
             {
                 CellsPerColumn = 10,
@@ -41,249 +35,154 @@ namespace NeoCortexApiSample
                 DutyCyclePeriod = 100,
                 MinPctOverlapDutyCycles = minOctOverlapCycles,
                 GlobalInhibition = false,
-                NumActiveColumnsPerInhArea = 0.02 * numColumns,
-                PotentialRadius = (int)(0.15 * imageSize * imageSize),
+                NumActiveColumnsPerInhArea = 0.03 * numColumns,
+                PotentialRadius = (int)(0.2 * imageSize * imageSize),
                 LocalAreaDensity = -1,
-                ActivationThreshold = 10,
-                MaxSynapsesPerSegment = (int)(0.01 * numColumns),
+                ActivationThreshold = 8,
+                MaxSynapsesPerSegment = (int)(0.015 * numColumns),
                 Random = new ThreadSafeRandom(42),
-                StimulusThreshold = 10,
+                StimulusThreshold = 8,
             };
 
-            //Runnig the Experiment
-            var sp = RunExperiment(cfg, inputPrefix);
-            //Runing the Reconstruction Method Experiment
-            RunRustructuringExperiment(sp);
-
+            var sp = RunExperiment(cfg);
+            if (sp != null) RunRestructuringExperiment(sp);
         }
 
-        /// <summary>
-        /// Implements the experiment.
-        /// </summary>
-        /// <param name="cfg"></param>
-        /// <param name="inputPrefix"> The name of the images</param>
-        /// <returns>The trained bersion of the SP.</returns>
-        private SpatialPooler RunExperiment(HtmConfig cfg, string inputPrefix)
+        private string AdaptiveBinarizeImage(string imagePath, int imageSize, string outputName)
         {
+            Mat image = Cv2.ImRead(imagePath, ImreadModes.Grayscale);
+            Cv2.Resize(image, image, new OpenCvSharp.Size(imageSize, imageSize));
 
+            Mat binaryImage = new Mat();
+            Cv2.AdaptiveThreshold(image, binaryImage, 255, AdaptiveThresholdTypes.GaussianC, ThresholdTypes.Binary, 11, 2);
+
+            // Convert the binarized image to a numeric CSV format
+            string outputFolder = Path.Combine(Environment.CurrentDirectory, "BinarizedImages");
+            if (!Directory.Exists(outputFolder))
+                Directory.CreateDirectory(outputFolder);
+
+            string outputFile = Path.Combine(outputFolder, $"{outputName}.csv");
+
+            using (StreamWriter writer = new StreamWriter(outputFile))
+            {
+                for (int y = 0; y < binaryImage.Rows; y++)
+                {
+                    string line = string.Join(",", Enumerable.Range(0, binaryImage.Cols)
+                                            .Select(x => binaryImage.At<byte>(y, x) > 128 ? "1" : "0"));
+                    writer.WriteLine(line);
+                }
+            }
+
+            Console.WriteLine($" Binarized Image Saved: {outputFile}");
+            return outputFile;
+        }
+
+        private SpatialPooler RunExperiment(HtmConfig cfg)
+        {
+            Console.WriteLine(" Running Experiment...");
             var mem = new Connections(cfg);
-
             bool isInStableState = false;
-
-            int numColumns = 64 * 64;
-            //Accessing the Image Folder form the Cureent Directory
-            //string trainingFolder = $"Sample";
+            int numColumns = 32 * 32;
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
 
-            //Accessing the Image Folder form the Cureent Directory Foldfer
-            var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
-            //Image Size
-            int imageSize = 28;
-            //Folder Name in the Directorty 
+            Console.WriteLine($" Looking for images in: {trainingFolder}");
+            var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
+            if (trainingImages.Length == 0)
+            {
+                Console.WriteLine(" No images found in the 'Sample' folder.");
+                return null;
+            }
+
+            Console.WriteLine($" Found {trainingImages.Length} images in 'Sample' folder.");
+
             string testName = "test_image";
 
-            HomeostaticPlasticityController hpa = new HomeostaticPlasticityController(mem, trainingImages.Length * 50, (isStable, numPatterns, actColAvg, seenInputs) =>
-            {
-                // Event should only be fired when entering the stable state.
-                if (isStable)
+            HomeostaticPlasticityController hpa = new HomeostaticPlasticityController(mem, trainingImages.Length * 50,
+                (isStable, numPatterns, actColAvg, seenInputs) =>
                 {
-                    isInStableState = true;
-                    Debug.WriteLine($"Entered STABLE state: Patterns: {numPatterns}, Inputs: {seenInputs}, iteration: {seenInputs / numPatterns}");
-                }
-                else
-                {
-                    isInStableState = false;
-                    Debug.WriteLine($"INSTABLE STATE");
-                }
-                // Ideal SP should never enter unstable state after stable state.
-                Debug.WriteLine($"Entered STABLE state: Patterns: {numPatterns}, Inputs: {seenInputs}, iteration: {seenInputs / numPatterns}");
-            }, requiredSimilarityThreshold: 0.975);
+                    if (isStable)
+                    {
+                        Console.WriteLine($"STABLE: Patterns={numPatterns}, Inputs={seenInputs}");
+                    }
+                },
+                requiredSimilarityThreshold: 0.975
+            );
 
-            // It creates the instance of Spatial Pooler Multithreaded version.
             SpatialPooler sp = new SpatialPooler(hpa);
-
-            //Initializing the Spatial Pooler Algorithm for SDR 
             sp.Init(mem, new DistributedMemory() { ColumnDictionary = new InMemoryDistributedDictionary<int, NeoCortexApi.Entities.Column>(1) });
 
-            //Image Size input
-            int imgSize = 28;
             int[] activeArray = new int[numColumns];
 
-            int numStableCycles = 0;
-            // Runnig the Traning Cycle for 6 times
-            int maxCycles = 6;
-            int currentCycle = 0;
+            string sdrFolder = Path.Combine(Environment.CurrentDirectory, "SDR_Values");
+            if (!Directory.Exists(sdrFolder))
+                Directory.CreateDirectory(sdrFolder);
 
-            while (!isInStableState && currentCycle < maxCycles)
+            foreach (var image in trainingImages)
             {
-                foreach (var Image in trainingImages)
+                string imageName = Path.GetFileNameWithoutExtension(image);
+                string inputBinaryImageFile = AdaptiveBinarizeImage(image, 28, imageName);
+
+                try
                 {
-                    //Binarizing the Images before taking Inputs for the Spatial Pooler
-                    string inputBinaryImageFile = NeoCortexUtils.BinarizeImage($"{Image}", imgSize, testName);
-
-                    // Read Binarized and Encoded input csv file into array
-                    int[] inputVector = NeoCortexUtils.ReadCsvIntegers(inputBinaryImageFile).ToArray();
-
-                    int[] oldArray = new int[activeArray.Length];
-                    List<double[,]> overlapArrays = new List<double[,]>();
-                    List<double[,]> bostArrays = new List<double[,]>();
+                    var inputVector = File.ReadAllLines(inputBinaryImageFile)
+                                        .SelectMany(line => line.Split(',')
+                                        .Select(value => int.TryParse(value, out int num) ? num : 0))
+                                        .ToArray();
 
                     sp.compute(inputVector, activeArray, true);
-                    //Getting the Active Columns
                     var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
 
-                    Debug.WriteLine($"'Cycle: {currentCycle} - Image-Input: {Image}'");
-                    Debug.WriteLine($"INPUT :{Helpers.StringifyVector(inputVector)}");
-                    Debug.WriteLine($"SDR:{Helpers.StringifyVector(activeCols)}\n");
+                    string sdrFile = Path.Combine(sdrFolder, $"sdr_{imageName}.csv");
+                    File.WriteAllLines(sdrFile, activeCols.Select(x => x.ToString()));
+
+                    Console.WriteLine($" SDR values saved in {sdrFile}");
+                    Console.WriteLine($" SDR for {imageName}: {string.Join(",", activeCols)}");
+
+                    if (activeCols.Length == 0)
+                    {
+                        Console.WriteLine($" WARNING: SDR for {imageName} is empty! Check binarization.");
+                    }
                 }
-
-                currentCycle++;
-
-                // Check if the desired number of cycles is reached
-                if (currentCycle >= maxCycles)
-                    break;
-
-                // Increment numStableCycles only when it's in a stable state
-                if (isInStableState)
-                    numStableCycles++;
+                catch (Exception ex)
+                {
+                    Console.WriteLine($" ERROR: Could not process {imageName}. {ex.Message}");
+                }
             }
 
             return sp;
         }
-        /// <summary>
-        /// Runs the restructuring experiment using the provided spatial pooler. 
-        /// This method iterates through a set of training images, computes spatial pooling, 
-        /// reconstructs permanence values, and generates heatmaps and similarity graphs based on the results.
-        /// </summary>
-        /// <param name="sp">The spatial pooler to use for the experiment.</param>
-        private void RunRustructuringExperiment(SpatialPooler sp)
+
+        private void RunRestructuringExperiment(SpatialPooler sp)
         {
-            // Ensure the training folder is correct
+            Console.WriteLine(" Running Restructuring Experiment...");
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
-            var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
+            var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
 
             if (trainingImages.Length == 0)
             {
-                Console.WriteLine("No images found in the specified folder with the given prefix.");
+                Console.WriteLine(" No images found for restructuring.");
                 return;
             }
 
             int imgSize = 28;
-            string testName = "test_image";
-            int[] activeArray = new int[64 * 64];
-            List<List<double>> heatmapData = new List<List<double>>();
-            List<int[]> binarizedInputs = new List<int[]>();
-            List<int[]> normalizedPermanence = new List<int[]>();
-            List<double[]> similarityList = new List<double[]>();
+            int[] activeArray = new int[32 * 32];
 
-            int i = 1; // Image counter for unique file naming
             foreach (var image in trainingImages)
             {
-                Debug.WriteLine($"Processing image: {image}");
+                Console.WriteLine($" Processing image: {image}");
+                string imageName = Path.GetFileNameWithoutExtension(image);
+                string inputBinaryImageFile = AdaptiveBinarizeImage(image, imgSize, imageName);
 
-                // Binarize the image
-                string inputBinaryImageFile = NeoCortexUtils.BinarizeImage(image, imgSize, testName);
-                int[] inputVector = NeoCortexUtils.ReadCsvIntegers(inputBinaryImageFile).ToArray();
-
+                var inputVector = File.ReadAllLines(inputBinaryImageFile)
+                                    .SelectMany(line => line.Split(',')
+                                    .Select(value => int.TryParse(value, out int num) ? num : 0))
+                                    .ToArray();
 
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
 
-                Dictionary<int, double> reconstructedPermanence = sp.Reconstruct(activeCols);
-
-                int maxInput = inputVector.Length;
-
-                // Process reconstructed permanence values
-                Dictionary<int, double> allPermanenceDictionary = new Dictionary<int, double>();
-                foreach (var kvp in reconstructedPermanence)
-                {
-                    allPermanenceDictionary[kvp.Key] = kvp.Value;
-                }
-
-                for (int inputIndex = 0; inputIndex < maxInput; inputIndex++)
-                {
-                    if (!reconstructedPermanence.ContainsKey(inputIndex))
-                    {
-                        allPermanenceDictionary[inputIndex] = 0.0;
-                    }
-                }
-
-                var sortedAllPermanenceDictionary = allPermanenceDictionary.OrderBy(kvp => kvp.Key);
-                List<double> permanenceValuesList = sortedAllPermanenceDictionary.Select(kvp => kvp.Value).ToList();
-
-                heatmapData.Add(permanenceValuesList);
-                binarizedInputs.Add(inputVector);
-
-                // Normalize permanence
-                double thresholdValue = 30.5;
-                List<int> normalizePermanenceList = Helpers.ThresholdingProbabilities(permanenceValuesList, thresholdValue);
-                normalizedPermanence.Add(normalizePermanenceList.ToArray());
-
-                // Calculate similarity
-                double similarity = MathHelpers.JaccardSimilarityofBinaryArrays(inputVector, normalizePermanenceList.ToArray());
-                similarityList.Add(new double[] { similarity });
-
-                // Save heatmap for the current image
-                string folderPath = Path.Combine(Environment.CurrentDirectory, "1DHeatMap_Image_Inputs");
-                if (!Directory.Exists(folderPath))
-                {
-                    Directory.CreateDirectory(folderPath);
-                }
-                string heatmapFilePath = Path.Combine(folderPath, $"heatmap_{i}.png");
-                Debug.WriteLine($"Heatmap saved for image {i}: {heatmapFilePath}");
-
-                i++;
+                Console.WriteLine($" SDR Output for {imageName}: {string.Join(",", activeCols)}");
             }
-
-            // Generate a combined similarity plot for all images
-            string similarityPlotPath = Path.Combine(Environment.CurrentDirectory, "SimilarityPlots_Image_Inputs", "combined_similarity_plot.png");
-            List<double> combinedSimilarities = similarityList.SelectMany(similarity => similarity).ToList();
-            NeoCortexUtils.DrawCombinedSimilarityPlot(combinedSimilarities, similarityPlotPath, 1000, 850);
-
-            Debug.WriteLine($"Combined similarity plot saved: {similarityPlotPath}");
-        }
-
-        // <summary>
-        /// Draws a combined similarity plot based on the provided list of arrays containing similarity values.
-        /// The combined similarity plot is generated by combining all similarity values from the list of arrays,
-        /// creating a single list of similarities, and then drawing the plot.
-        /// </summary>
-        /// <param name="similaritiesList">List of arrays containing similarity values.</param>
-        public static void DrawSimilarityPlots(List<double[]> similaritiesList)
-        {
-            // Combine all similarities from the list of arrays
-
-            List<double> combinedSimilarities = new List<double>();
-            foreach (var similarities in similaritiesList)
-
-            {
-                combinedSimilarities.AddRange(similarities);
-            }
-
-            // Define the folder path based on the current directory
-
-            string folderPath = Path.Combine(Environment.CurrentDirectory, "SimilarityPlots_Image_Inputs");
-
-
-            // Create the folder if it doesn't exist
-
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-
-            // Define the file name
-            string fileName = "combined_similarity_plot_Image_Inputs.png";
-
-            // Define the file path with the folder path and file name
-
-            string filePath = Path.Combine(folderPath, fileName);
-
-            // Draw the combined similarity plot
-            NeoCortexUtils.DrawCombinedSimilarityPlot(combinedSimilarities, filePath, 1000, 850);
-
-            Debug.WriteLine($"Combined similarity plot generated and saved successfully.");
-
         }
     }
 }
