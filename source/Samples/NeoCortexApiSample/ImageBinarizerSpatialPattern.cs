@@ -1,8 +1,10 @@
-
+﻿using NeoCortex;
 using NeoCortexApi.Entities;
 using NeoCortexApi.Utility;
 using NeoCortexApi;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using OpenCvSharp;
@@ -12,7 +14,6 @@ namespace NeoCortexApiSample
     internal class ImageBinarizerSpatialPattern
     {
         public string inputPrefix { get; private set; } = "";
-
 
         public void Run()
         {
@@ -80,6 +81,7 @@ namespace NeoCortexApiSample
         {
             Console.WriteLine(" Running Experiment...");
             var mem = new Connections(cfg);
+            bool isInStableState = false;
             int numColumns = 32 * 32;
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
 
@@ -87,20 +89,20 @@ namespace NeoCortexApiSample
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
             if (trainingImages.Length == 0)
             {
-                Console.WriteLine(" No images found in the specific  'Sample' folder.");
+                Console.WriteLine(" No images found in the 'Sample' folder.");
                 return null;
             }
 
             Console.WriteLine($" Found {trainingImages.Length} images in 'Sample' folder.");
 
-            
+            string testName = "test_image";
 
             HomeostaticPlasticityController hpa = new HomeostaticPlasticityController(mem, trainingImages.Length * 50,
                 (isStable, numPatterns, actColAvg, seenInputs) =>
                 {
                     if (isStable)
                     {
-                        Console.WriteLine($"STABLE: Patterns={numPatterns}, Inputs={seenInputs}");
+                        Console.WriteLine($" STABLE: Patterns={numPatterns}, Inputs={seenInputs}");
                     }
                 },
                 requiredSimilarityThreshold: 0.975
@@ -167,6 +169,10 @@ namespace NeoCortexApiSample
 
             foreach (var image in trainingImages)
             {
+                Console.WriteLine($"🔍 Processing image: {image}");
+                string imageName = Path.GetFileNameWithoutExtension(image);
+                string inputBinaryImageFile = AdaptiveBinarizeImage(image, imgSize, imageName);
+
                 var inputVector = File.ReadAllLines(inputBinaryImageFile)
                                     .SelectMany(line => line.Split(',')
                                     .Select(value => int.TryParse(value, out int num) ? num : 0))
@@ -175,7 +181,7 @@ namespace NeoCortexApiSample
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
 
-                Console.WriteLine($" SDR Output for {imageName}: {string.Join(",", activeCols)}");
+                Console.WriteLine($"📌 SDR Output for {imageName}: {string.Join(",", activeCols)}");
             }
         }
     }
