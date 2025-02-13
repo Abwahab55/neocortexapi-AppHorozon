@@ -1,4 +1,4 @@
-﻿
+
 using NeoCortexApi.Entities;
 using NeoCortexApi.Utility;
 using NeoCortexApi;
@@ -12,6 +12,7 @@ namespace NeoCortexApiSample
     internal class ImageBinarizerSpatialPattern
     {
         public string inputPrefix { get; private set; } = "";
+
 
         public void Run()
         {
@@ -166,10 +167,6 @@ namespace NeoCortexApiSample
 
             foreach (var image in trainingImages)
             {
-                Console.WriteLine($" Processing image: {image}");
-                string imageName = Path.GetFileNameWithoutExtension(image);
-                string inputBinaryImageFile = AdaptiveBinarizeImage(image, imgSize, imageName);
-
                 var inputVector = File.ReadAllLines(inputBinaryImageFile)
                                     .SelectMany(line => line.Split(',')
                                     .Select(value => int.TryParse(value, out int num) ? num : 0))
