@@ -16,7 +16,7 @@ namespace NeoCortexApiSample
         public string inputPrefix { get; private set; } = "";
 
         public void Run()
-        {
+        {   //STARTING EXPERIMENT OF IMAGE BINARIZATION
             Console.WriteLine($" Starting Experiment: {nameof(ImageBinarizerSpatialPattern)}");
 
             double minOctOverlapCycles = 1.0;
@@ -163,7 +163,7 @@ namespace NeoCortexApiSample
                 Console.WriteLine(" No images found for restructuring.");
                 return;
             }
-
+            // PUTTING IMAGE SIZE AS REQUIRED
             int imgSize = 28;
             int[] activeArray = new int[32 * 32];
 
