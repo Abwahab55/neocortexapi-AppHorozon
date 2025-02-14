@@ -163,7 +163,7 @@ namespace NeoCortexApiSample
                 Console.WriteLine(" No images found for restructuring.");
                 return;
             }
-            
+            // PUTTING IMAGE SIZE AS REQUIRED
             int imgSize = 28;
             int[] activeArray = new int[32 * 32];
 
