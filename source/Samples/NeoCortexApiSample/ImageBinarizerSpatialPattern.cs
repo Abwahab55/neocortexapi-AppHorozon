@@ -157,7 +157,7 @@ namespace NeoCortexApiSample
             Console.WriteLine(" Running Restructuring Experiment...");
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
-
+            //FOR LENGTH ==0
             if (trainingImages.Length == 0)
             {
                 Console.WriteLine(" No images found for restructuring.");
