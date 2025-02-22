@@ -156,6 +156,7 @@ namespace NeoCortexApiSample
         {
             //RECONSTRUCTION BEGINS
             Console.WriteLine(" Running Restructuring Experiment...");
+            //INPUT FROM LOCAL FOLDER
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
             //FOR LENGTH ==0
