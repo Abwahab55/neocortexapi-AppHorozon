@@ -154,6 +154,7 @@ namespace NeoCortexApiSample
 
         private void RunRestructuringExperiment(SpatialPooler sp)
         {
+            //RECONSTRUCTION BEGINS
             Console.WriteLine(" Running Restructuring Experiment...");
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
