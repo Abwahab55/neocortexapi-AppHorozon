@@ -83,6 +83,7 @@ namespace NeoCortexApiSample
             var mem = new Connections(cfg);
             bool isInStableState = false;
             int numColumns = 32 * 32;
+            //PATH SPECIFICATION
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
 
             Console.WriteLine($" Looking for images in: {trainingFolder}");
