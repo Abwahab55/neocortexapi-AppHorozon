@@ -52,8 +52,6 @@ namespace NeoCortexApiSample
         {
             Mat image = Cv2.ImRead(imagePath, ImreadModes.Grayscale);
             Cv2.Resize(image, image, new OpenCvSharp.Size(imageSize, imageSize));
-            //Mat image = Cv2.ImRead(imagePath, ImreadModes.Grayscale);
-            //Cv2.Resize(image, image, new OpenCvSharp.Size(imageSize, imageSize));
 
             Mat binaryImage = new Mat();
             Cv2.AdaptiveThreshold(image, binaryImage, 255, AdaptiveThresholdTypes.GaussianC, ThresholdTypes.Binary, 11, 2);
