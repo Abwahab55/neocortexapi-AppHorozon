@@ -1,6 +1,9 @@
-#ML 24/25-01 Investigate Image Reconstruction by using Classifiers
+# ML 24/25-01 Investigate Image Reconstruction by using Classifiers
+
 [![Made with - C#](https://img.shields.io/badge/Made_with-C%23-2ea44f?style=for-the-badge&logo=C%23)](https://learn.microsoft.com/en-us/dotnet/csharp/)
-![Built With - ❤️](https://img.shields.io/badge/Built_With-❤️-2ea44f?style=for-the-badge&logo=Love)
+
+[![Built With - ❤️](https://img.shields.io/badge/Built_With-%E2%9D%A4-2ea44f?style=for-the-badge)](#)
+
 
 
 Project Overview:
@@ -65,6 +68,8 @@ By the end of this project, we expect to:
             •	Provide insights into the strengths and weaknesses of each classifier for image reconstruction tasks.
 <<<<<< HEAD
 The project will contribute to the broader understanding of how HTM and KNN can be applied in areas such as image processing, pattern recognition, and data reconstruction, offering practical insights for future applications in machine learning and artificial intelligence.
-=====
+
+
+=======
 In conclusion, we have explored the utilization of the Neocortex API for image and scalar data processing, employing techniques inspired by the biological principles of the neocortex.The project will contribute to the broader understanding of how HTM can be applied in areas such as image processing, pattern recognition, and data reconstruction, offering practical insights for future applications in machine learning and artificial intelligence.
->>>>>>> 95c7db2a6487560d573a271c145669dacb67e18d
+
