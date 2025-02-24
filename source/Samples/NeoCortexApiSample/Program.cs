@@ -18,7 +18,7 @@ namespace NeoCortexApiSample
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            //
+            
             // Starts experiment that demonstrates how to learn spatial patterns.
             //SpatialPatternLearning experiment = new SpatialPatternLearning();
             //experiment.Run();
@@ -28,7 +28,7 @@ namespace NeoCortexApiSample
             experiment.Run();
 
 
-            //
+            
             //Starts experiment that demonstrates how to learn spatial patterns.
             //SequenceLearning experiment = new SequenceLearning();
             //experiment.Run();
@@ -78,7 +78,7 @@ namespace NeoCortexApiSample
             //Speak, speak.";
 
             //            List<double> poemSeq = new List<double>();
-            //            foreach (var chr in poem)
+            //            for each (var chr in poem)
             //            {
             //                poemSeq.Add((double)chr);
             //            }
@@ -90,7 +90,7 @@ namespace NeoCortexApiSample
             MultiSequenceLearning experiment = new MultiSequenceLearning();
             var predictor = experiment.Run(sequences);
 
-            //
+            
             // These list are used to see how the prediction works.
             // Predictor is traversing the list element by element. 
             // By providing more elements to the prediction, the predictor delivers more precise result.
