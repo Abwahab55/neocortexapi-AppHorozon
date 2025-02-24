@@ -43,7 +43,7 @@ namespace NeoCortexApiSample
                 Random = new ThreadSafeRandom(42),
                 StimulusThreshold = 8,
             };
-
+            //RUNEXPERIMENT
             var sp = RunExperiment(cfg);
             if (sp != null) RunRestructuringExperiment(sp);
         }
