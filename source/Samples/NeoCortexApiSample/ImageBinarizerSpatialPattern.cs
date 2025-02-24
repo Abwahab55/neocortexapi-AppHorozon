@@ -18,7 +18,7 @@ namespace NeoCortexApiSample
         public void Run()
         {   //STARTING EXPERIMENT OF IMAGE BINARIZATION
             Console.WriteLine($" Starting Experiment: {nameof(ImageBinarizerSpatialPattern)}");
-
+            //INITIALIZING VALUES
             double minOctOverlapCycles = 1.0;
             double maxBoost = 5.0;
             int numColumns = 32 * 32;
@@ -43,7 +43,7 @@ namespace NeoCortexApiSample
                 Random = new ThreadSafeRandom(42),
                 StimulusThreshold = 8,
             };
-
+            //RUNEXPERIMENT
             var sp = RunExperiment(cfg);
             if (sp != null) RunRestructuringExperiment(sp);
         }
@@ -72,7 +72,7 @@ namespace NeoCortexApiSample
                     writer.WriteLine(line);
                 }
             }
-
+            //SAVED IMAGE AS OUTPUT
             Console.WriteLine($" Binarized Image Saved: {outputFile}");
             return outputFile;
         }
