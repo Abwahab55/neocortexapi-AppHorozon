@@ -72,7 +72,7 @@ namespace NeoCortexApiSample
                     writer.WriteLine(line);
                 }
             }
-
+            //SAVED IMAGE AS OUTPUT
             Console.WriteLine($" Binarized Image Saved: {outputFile}");
             return outputFile;
         }
