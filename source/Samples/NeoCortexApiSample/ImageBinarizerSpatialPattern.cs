@@ -83,6 +83,7 @@ namespace NeoCortexApiSample
             var mem = new Connections(cfg);
             bool isInStableState = false;
             int numColumns = 32 * 32;
+            //PATH SPECIFICATION
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
 
             Console.WriteLine($" Looking for images in: {trainingFolder}");
@@ -154,10 +155,12 @@ namespace NeoCortexApiSample
 
         private void RunRestructuringExperiment(SpatialPooler sp)
         {
+            //RECONSTRUCTION BEGINS
             Console.WriteLine(" Running Restructuring Experiment...");
+            //INPUT FROM LOCAL FOLDER
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
-
+            //FOR LENGTH ==0
             if (trainingImages.Length == 0)
             {
                 Console.WriteLine(" No images found for restructuring.");
@@ -180,7 +183,7 @@ namespace NeoCortexApiSample
 
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
-
+                //SDR OUTPUT
                 Console.WriteLine($"📌 SDR Output for {imageName}: {string.Join(",", activeCols)}");
             }
         }
