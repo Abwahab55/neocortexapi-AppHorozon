@@ -18,7 +18,7 @@ namespace NeoCortexApiSample
         public void Run()
         {   //STARTING EXPERIMENT OF IMAGE BINARIZATION
             Console.WriteLine($" Starting Experiment: {nameof(ImageBinarizerSpatialPattern)}");
-
+            //INITIALIZING VALUES
             double minOctOverlapCycles = 1.0;
             double maxBoost = 5.0;
             int numColumns = 32 * 32;
