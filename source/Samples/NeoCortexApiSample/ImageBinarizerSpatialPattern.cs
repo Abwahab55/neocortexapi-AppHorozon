@@ -94,7 +94,7 @@ namespace NeoCortexApiSample
                 Console.WriteLine(" No images found in the 'Sample' folder.");
                 return null;
             }
-
+            //IF IMAGES FOUND
             Console.WriteLine($" Found {trainingImages.Length} images in 'Sample' folder.");
 
             string testName = "test_image";
