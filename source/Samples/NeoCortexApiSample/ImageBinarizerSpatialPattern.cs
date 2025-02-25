@@ -76,7 +76,7 @@ namespace NeoCortexApiSample
             Console.WriteLine($" Binarized Image Saved: {outputFile}");
             return outputFile;
         }
-
+        //SPATIAL POOLER EXPERIMENT
         private SpatialPooler RunExperiment(HtmConfig cfg)
         {
             Console.WriteLine(" Running Experiment...");
@@ -90,10 +90,11 @@ namespace NeoCortexApiSample
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
             if (trainingImages.Length == 0)
             {
+                //IF IMAGES NOT FOUND
                 Console.WriteLine(" No images found in the 'Sample' folder.");
                 return null;
             }
-
+            //IF IMAGES FOUND
             Console.WriteLine($" Found {trainingImages.Length} images in 'Sample' folder.");
 
             string testName = "test_image";
