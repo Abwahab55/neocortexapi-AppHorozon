@@ -76,7 +76,7 @@ namespace NeoCortexApiSample
             Console.WriteLine($" Binarized Image Saved: {outputFile}");
             return outputFile;
         }
-
+        //SPATIAL POOLER EXPERIMENT
         private SpatialPooler RunExperiment(HtmConfig cfg)
         {
             Console.WriteLine(" Running Experiment...");
