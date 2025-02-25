@@ -90,6 +90,7 @@ namespace NeoCortexApiSample
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
             if (trainingImages.Length == 0)
             {
+                //IF IMAGES NOT FOUND
                 Console.WriteLine(" No images found in the 'Sample' folder.");
                 return null;
             }
