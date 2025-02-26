@@ -25,6 +25,7 @@ namespace NeoCortexApiSample
             int imageSize = 28;
             var colDims = new int[] { 32, 32 };
 
+            //HTM CONFIG
             HtmConfig cfg = new HtmConfig(new int[] { imageSize, imageSize }, new int[] { numColumns })
             {
                 CellsPerColumn = 10,
