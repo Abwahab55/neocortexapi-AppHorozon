@@ -73,7 +73,7 @@ namespace NeoCortexApiSample
                     writer.WriteLine(line);
                 }
             }
-            //SAVED IMAGE AS OUTPUT
+            //SAVED BINARIZED IMAGE AS OUTPUT 
             Console.WriteLine($" Binarized Image Saved: {outputFile}");
             return outputFile;
         }
@@ -87,6 +87,7 @@ namespace NeoCortexApiSample
             //PATH SPECIFICATION
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
 
+            //TRAINING FOLDER
             Console.WriteLine($" Looking for images in: {trainingFolder}");
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
             if (trainingImages.Length == 0)
