@@ -98,7 +98,7 @@ namespace NeoCortexApiSample
             }
             //IF IMAGES FOUND
             Console.WriteLine($" Found {trainingImages.Length} images in 'Sample' folder.");
-
+            //TEST IMAGE
             string testName = "test_image";
 
             HomeostaticPlasticityController hpa = new HomeostaticPlasticityController(mem, trainingImages.Length * 50,
