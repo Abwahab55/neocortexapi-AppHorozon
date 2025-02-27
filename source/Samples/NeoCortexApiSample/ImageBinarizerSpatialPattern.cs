@@ -156,9 +156,10 @@ namespace NeoCortexApiSample
             return sp;
         }
 
+        //RECONSTRUCTION BEGINS
         private void RunRestructuringExperiment(SpatialPooler sp)
         {
-            //RECONSTRUCTION BEGINS
+            
             Console.WriteLine(" Running Restructuring Experiment...");
             //INPUT FROM LOCAL FOLDER
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
