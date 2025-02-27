@@ -156,7 +156,7 @@ namespace NeoCortexApiSample
             return sp;
         }
 
-        //RECONSTRUCTION BEGINS
+        //RECONSTRUCTION BEGINS(SPATIAL POOLER)
         private void RunRestructuringExperiment(SpatialPooler sp)
         {
             
