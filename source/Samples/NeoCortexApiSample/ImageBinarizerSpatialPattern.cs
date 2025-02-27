@@ -156,9 +156,10 @@ namespace NeoCortexApiSample
             return sp;
         }
 
+        //RECONSTRUCTION BEGINS(SPATIAL POOLER)
         private void RunRestructuringExperiment(SpatialPooler sp)
         {
-            //RECONSTRUCTION BEGINS
+            
             Console.WriteLine(" Running Restructuring Experiment...");
             //INPUT FROM LOCAL FOLDER
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
@@ -186,7 +187,7 @@ namespace NeoCortexApiSample
 
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
-                //SDR OUTPUT
+                //SDR OUTPUT FOR IMAGES
                 Console.WriteLine($"📌 SDR Output for {imageName}: {string.Join(",", activeCols)}");
             }
         }
