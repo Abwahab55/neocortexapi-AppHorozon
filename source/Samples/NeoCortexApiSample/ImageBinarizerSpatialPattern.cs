@@ -187,7 +187,7 @@ namespace NeoCortexApiSample
 
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
-                //SDR OUTPUT
+                //SDR OUTPUT FOR IMAGES
                 Console.WriteLine($"📌 SDR Output for {imageName}: {string.Join(",", activeCols)}");
             }
         }
