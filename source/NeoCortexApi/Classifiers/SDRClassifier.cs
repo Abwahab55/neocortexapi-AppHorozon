@@ -81,7 +81,7 @@ namespace NeoCortexApi.Classifiers
                 throw new ObjectShouldNotBeNUllException(ExceptionConstants.CLASSIFICATION_CANNOT_BE_NULL);
             }
 
-            // throws object should not be null exception if patternNZ is null or its length is zero
+            // throws object should not be null exception if pattern is null or its length is zero
             if (patternNz == null || patternNz.Length == 0)
             {
                 throw new ObjectShouldNotBeNUllException(ExceptionConstants.PATTERN_NZ_CANNOT_BE_NULL);
