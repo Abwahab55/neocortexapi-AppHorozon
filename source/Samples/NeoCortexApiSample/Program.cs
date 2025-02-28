@@ -12,7 +12,7 @@ namespace NeoCortexApiSample
     {
         /// <summary>
         /// This sample shows a typical experiment code for SP and TM.
-        /// You must start this code in debugger to follow the trace.
+        /// We must start this code in debugger to follow the trace.
         /// and TM.
         /// </summary>
         /// <param name="args"></param>
@@ -92,7 +92,7 @@ namespace NeoCortexApiSample
 
             
             // These list are used to see how the prediction works.
-            // Predictor is traversing the list element by element. 
+            // Predictor is traversing the list element to element. 
             // By providing more elements to the prediction, the predictor delivers more precise result.
             var list1 = new double[] { 1.0, 2.0, 3.0, 4.0, 2.0, 5.0 };
             var list2 = new double[] { 2.0, 3.0, 4.0 };
