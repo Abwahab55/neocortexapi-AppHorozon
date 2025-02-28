@@ -86,7 +86,7 @@ namespace NeoCortexApiSample
             //            sequences.Add("Poem", poemSeq);
 
             
-            // Prototype for building the prediction engine.
+            // This is the prototype for building the prediction engine.
             MultiSequenceLearning experiment = new MultiSequenceLearning();
             var predictor = experiment.Run(sequences);
 
@@ -126,6 +126,7 @@ namespace NeoCortexApiSample
 
                     var tokens = res.First().PredictedInput.Split('_');
                     var tokens2 = res.First().PredictedInput.Split('-');
+                    //printing next predicted value.
                     Debug.WriteLine($"Predicted Sequence: {tokens[0]}, predicted next element {tokens2.Last()}");
                 }
                 else
