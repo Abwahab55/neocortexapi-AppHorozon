@@ -42,7 +42,7 @@ namespace NeoCortexApi.Classifiers
         }
 
         /// <summary>
-        /// Represents the constructor in which we can alpha can be assigned.
+        /// Represents the constructor in where alpha can be assigned.
         /// By default value is take as 0.001. This value can be changed in order to increase or decrease the learning process
         /// Larger the value of alpha less iteration are required to learn and vice-versa.
         /// NOTE: alpha value should always be greater than 0 in order to make the learning happen
