@@ -18,14 +18,12 @@ namespace NeoCortexApiSample
         public void Run()
         {   //EXPERIMENT OF IMAGE BINARIZATION
             Console.WriteLine($" Starting Experiment: {nameof(ImageBinarizerSpatialPattern)}");
-            //INITIALIZING CONFIGURATION VARIABLES
             double minOctOverlapCycles = 1.0;
             double maxBoost = 5.0;
             int numColumns = 32 * 32;
             int imageSize = 28;
             var colDims = new int[] { 32, 32 };
 
-            //HTM CONFIGURATION SETUP
             HtmConfig cfg = new HtmConfig(new int[] { imageSize, imageSize }, new int[] { numColumns })
             {
                 CellsPerColumn = 10,
