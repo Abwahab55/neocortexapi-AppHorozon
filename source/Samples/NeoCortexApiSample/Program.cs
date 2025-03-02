@@ -12,13 +12,13 @@ namespace NeoCortexApiSample
     {
         /// <summary>
         /// This sample shows a typical experiment code for SP and TM.
-        /// You must start this code in debugger to follow the trace.
+        /// We must start this code in debugger to follow the trace.
         /// and TM.
         /// </summary>
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            //
+            
             // Starts experiment that demonstrates how to learn spatial patterns.
             //SpatialPatternLearning experiment = new SpatialPatternLearning();
             //experiment.Run();
@@ -28,8 +28,8 @@ namespace NeoCortexApiSample
             experiment.Run();
 
 
-            //
-            // Starts experiment that demonstrates how to learn spatial patterns.
+            
+            //Starts experiment that demonstrates how to learn spatial patterns.
             //SequenceLearning experiment = new SequenceLearning();
             //experiment.Run();
 
@@ -49,7 +49,7 @@ namespace NeoCortexApiSample
             sequences.Add("S1", new List<double>(new double[] { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, }));
             sequences.Add("S2", new List<double>(new double[] { 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0 }));
 
-            //
+         
             // Prototype for building the prediction engine.
             MultiSequenceLearning experiment = new MultiSequenceLearning();
             var predictor = experiment.Run(sequences);
@@ -58,7 +58,7 @@ namespace NeoCortexApiSample
 
         /// <summary>
         /// This example demonstrates how to learn two sequences and how to use the prediction mechanism.
-        /// First, two sequences are learned.
+        /// First,two sequences are learned.
         /// Second, three short sequences with three elements each are created und used for prediction. The predictor used by experiment privides to the HTM every element of every predicting sequence.
         /// The predictor tries to predict the next element.
         /// </summary>
@@ -78,27 +78,28 @@ namespace NeoCortexApiSample
             //Speak, speak.";
 
             //            List<double> poemSeq = new List<double>();
-            //            foreach (var chr in poem)
+            //            for each (var chr in poem)
             //            {
             //                poemSeq.Add((double)chr);
             //            }
 
             //            sequences.Add("Poem", poemSeq);
 
-            //
-            // Prototype for building the prediction engine.
+            
+            // This is the prototype for building the prediction engine.
             MultiSequenceLearning experiment = new MultiSequenceLearning();
             var predictor = experiment.Run(sequences);
 
-            //
+            
             // These list are used to see how the prediction works.
-            // Predictor is traversing the list element by element. 
+            // Predictor is traversing the list element to element. 
             // By providing more elements to the prediction, the predictor delivers more precise result.
             var list1 = new double[] { 1.0, 2.0, 3.0, 4.0, 2.0, 5.0 };
             var list2 = new double[] { 2.0, 3.0, 4.0 };
             var list3 = new double[] { 8.0, 1.0, 2.0 };
 
             predictor.Reset();
+
             PredictNextElement(predictor, list1);
 
             predictor.Reset();
@@ -110,7 +111,7 @@ namespace NeoCortexApiSample
 
         private static void PredictNextElement(Predictor predictor, double[] list)
         {
-            Debug.WriteLine("------------------------------");
+            Debug.WriteLine("--------------------------------");
 
             foreach (var item in list)
             {
@@ -125,13 +126,14 @@ namespace NeoCortexApiSample
 
                     var tokens = res.First().PredictedInput.Split('_');
                     var tokens2 = res.First().PredictedInput.Split('-');
+                    //printing next predicted value.
                     Debug.WriteLine($"Predicted Sequence: {tokens[0]}, predicted next element {tokens2.Last()}");
                 }
                 else
                     Debug.WriteLine("Nothing predicted :(");
             }
 
-            Debug.WriteLine("------------------------------");
+            Debug.WriteLine("---------------------------------");
         }
     }
 }
