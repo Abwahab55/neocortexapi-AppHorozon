@@ -55,7 +55,7 @@ namespace NeoCortexApi.Classifiers
         /// <summary>
         /// Mapping between the input key and the SDR assootiated to the input.
         /// </summary>
-        //private Dictionary<TIN, int[]> m_ActiveMap2 = new Dictionary<TIN, int[]>();
+        // private Dictionary<TIN, int[]> m_ActiveMap2 = new Dictionary<TIN, int[]>();
 
         /// <summary>
         /// Clears th elearned state.
@@ -66,7 +66,7 @@ namespace NeoCortexApi.Classifiers
         }
 
         /// <summary>
-        /// Checks if the same SDR is already stored under the given key.
+        /// It checks if the same SDR is already stored under the given key.
         /// </summary>
         /// <param name="input"></param>
         /// <param name="sdr"></param>
@@ -149,6 +149,7 @@ namespace NeoCortexApi.Classifiers
             if (!previousOne.SequenceEqual(cellIndicies))
             {
                 // double numOfSameBitsPct = (double)(((double)(this.activeMap2[input].Intersect(cellIndicies).Count()) / Math.Max((double)cellIndicies.Length, this.activeMap2[input].Length)));
+                
                 // double numOfSameBitsPct = (double)(((double)(this.activeMap2[input].Intersect(cellIndicies).Count()) / (double)this.activeMap2[input].Length));
                 var numOfSameBitsPct = previousOne.Intersect(cellIndicies).Count();
                 Debug.WriteLine($"Prev/Now/Same={previousOne.Length}/{cellIndicies.Length}/{numOfSameBitsPct}");
