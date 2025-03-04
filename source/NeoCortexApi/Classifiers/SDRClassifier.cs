@@ -42,8 +42,8 @@ namespace NeoCortexApi.Classifiers
         }
 
         /// <summary>
-        /// Represents the constructor in which we can alpha can be assigned.
-        /// By default value is take as 0.001. This value can be changed in order to increase or decrease the learning process
+        /// Represents the constructor in where alpha can be assigned.
+        /// Here by default value is taken as 0.001. This value can be changed in order to increase or decrease the learning process.
         /// Larger the value of alpha less iteration are required to learn and vice-versa.
         /// NOTE: alpha value should always be greater than 0 in order to make the learning happen
         /// </summary>
@@ -55,7 +55,7 @@ namespace NeoCortexApi.Classifiers
         }
 
         /// <summary>
-        /// Initializes the global variables.
+        /// Here Initializes the global variables.
         /// </summary>
         private void InitializeEntries()
         {
@@ -81,7 +81,7 @@ namespace NeoCortexApi.Classifiers
                 throw new ObjectShouldNotBeNUllException(ExceptionConstants.CLASSIFICATION_CANNOT_BE_NULL);
             }
 
-            // throws object should not be null exception if patternNZ is null or its length is zero
+            // throws object should not be null exception if pattern is null or its length is zero
             if (patternNz == null || patternNz.Length == 0)
             {
                 throw new ObjectShouldNotBeNUllException(ExceptionConstants.PATTERN_NZ_CANNOT_BE_NULL);
