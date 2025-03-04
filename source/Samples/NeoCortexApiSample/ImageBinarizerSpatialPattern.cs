@@ -16,9 +16,8 @@ namespace NeoCortexApiSample
         public string inputPrefix { get; private set; } = "";
 
         public void Run()
-        {   //STARTING EXPERIMENT OF IMAGE BINARIZATION
+        {   //EXPERIMENT OF IMAGE BINARIZATION
             Console.WriteLine($" Starting Experiment: {nameof(ImageBinarizerSpatialPattern)}");
-
             double minOctOverlapCycles = 1.0;
             double maxBoost = 5.0;
             int numColumns = 32 * 32;
@@ -43,7 +42,7 @@ namespace NeoCortexApiSample
                 Random = new ThreadSafeRandom(42),
                 StimulusThreshold = 8,
             };
-
+            //RUNEXPERIMENT
             var sp = RunExperiment(cfg);
             if (sp != null) RunRestructuringExperiment(sp);
         }
@@ -72,30 +71,33 @@ namespace NeoCortexApiSample
                     writer.WriteLine(line);
                 }
             }
-
+            //SAVED BINARIZED IMAGE AS OUTPUT 
             Console.WriteLine($" Binarized Image Saved: {outputFile}");
             return outputFile;
         }
-
+        //SPATIAL POOLER EXPERIMENT
         private SpatialPooler RunExperiment(HtmConfig cfg)
         {
             Console.WriteLine(" Running Experiment...");
             var mem = new Connections(cfg);
             bool isInStableState = false;
             int numColumns = 32 * 32;
-            //PATH SPECIFICATION
+
+            // PATH SPECIFICATION STEPS
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
 
+            //TRAINING FOLDER
             Console.WriteLine($" Looking for images in: {trainingFolder}");
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
             if (trainingImages.Length == 0)
             {
+                //IF IMAGES NOT FOUND
                 Console.WriteLine(" No images found in the 'Sample' folder.");
                 return null;
             }
-
+            //IF IMAGES FOUND
             Console.WriteLine($" Found {trainingImages.Length} images in 'Sample' folder.");
-
+            //TEST IMAGE
             string testName = "test_image";
 
             HomeostaticPlasticityController hpa = new HomeostaticPlasticityController(mem, trainingImages.Length * 50,
@@ -153,20 +155,19 @@ namespace NeoCortexApiSample
             return sp;
         }
 
+        //RECONSTRUCTION BEGINS(SPATIAL POOLER)
         private void RunRestructuringExperiment(SpatialPooler sp)
         {
-            //RECONSTRUCTION BEGINS
+            
             Console.WriteLine(" Running Restructuring Experiment...");
-            //INPUT FROM LOCAL FOLDER
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
-            //FOR LENGTH ==0
             if (trainingImages.Length == 0)
             {
                 Console.WriteLine(" No images found for restructuring.");
                 return;
             }
-            // PUTTING IMAGE SIZE AS REQUIRED
+            //PUTTING IMAGE SIZE AS REQUIRED
             int imgSize = 28;
             int[] activeArray = new int[32 * 32];
 
@@ -183,7 +184,7 @@ namespace NeoCortexApiSample
 
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
-                //SDR OUTPUT
+                //SDR OUTPUT FOR IMAGES
                 Console.WriteLine($"📌 SDR Output for {imageName}: {string.Join(",", activeCols)}");
             }
         }
