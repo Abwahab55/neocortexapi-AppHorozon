@@ -13,11 +13,13 @@ namespace NeoCortexApiSample
 {
     internal class ImageBinarizerSpatialPattern
     {
-        public string inputPrefix { get; private set; } = "";
+        public string inputPrefix { get; private set; } = "input_";
 
         public void Run()
+
         {   //EXPERIMENT OF IMAGE BINARIZATION
             Console.WriteLine($" Starting Experiment: {nameof(ImageBinarizerSpatialPattern)}");
+
             double minOctOverlapCycles = 1.0;
             double maxBoost = 5.0;
             int numColumns = 32 * 32;
@@ -44,7 +46,7 @@ namespace NeoCortexApiSample
             };
             //RUNEXPERIMENT
             var sp = RunExperiment(cfg);
-            if (sp != null) RunRestructuringExperiment(sp);
+            RunRestructuringExperiment(sp);
         }
 
         private string AdaptiveBinarizeImage(string imagePath, int imageSize, string outputName)
@@ -55,22 +57,37 @@ namespace NeoCortexApiSample
             Mat binaryImage = new Mat();
             Cv2.AdaptiveThreshold(image, binaryImage, 255, AdaptiveThresholdTypes.GaussianC, ThresholdTypes.Binary, 11, 2);
 
-            // Convert the binarized image to a numeric CSV format
-            string outputFolder = Path.Combine(Environment.CurrentDirectory, "BinarizedImages");
-            if (!Directory.Exists(outputFolder))
-                Directory.CreateDirectory(outputFolder);
+            string outputFolderCsv = Path.Combine(Environment.CurrentDirectory, "BinarizedImages");
+            string outputFolderPng = Path.Combine(Environment.CurrentDirectory, "BinarizedImages_PNG");
+            Directory.CreateDirectory(outputFolderCsv);
+            Directory.CreateDirectory(outputFolderPng);
 
-            string outputFile = Path.Combine(outputFolder, $"{outputName}.csv");
+            string outputCsvFile = Path.Combine(outputFolderCsv, $"{outputName}.csv");
+            string outputPngFile = Path.Combine(outputFolderPng, $"{outputName}.png");
 
-            using (StreamWriter writer = new StreamWriter(outputFile))
+            // Save as CSV (Numbers)
+            using (StreamWriter writer = new StreamWriter(outputCsvFile))
             {
-                for (int y = 0; y < binaryImage.Rows; y++)
+                var indexer = binaryImage.GetGenericIndexer<byte>();
+                for (int i = 0; i < binaryImage.Rows; i++)
                 {
-                    string line = string.Join(",", Enumerable.Range(0, binaryImage.Cols)
-                                            .Select(x => binaryImage.At<byte>(y, x) > 128 ? "1" : "0"));
-                    writer.WriteLine(line);
+                    List<string> rowValues = new List<string>();
+                    for (int j = 0; j < binaryImage.Cols; j++)
+                    {
+                        rowValues.Add(indexer[i, j] > 0 ? "1" : "0");
+                    }
+                    writer.WriteLine(string.Join(",", rowValues));
                 }
             }
+
+
+            // Save as PNG (Image)
+            Cv2.ImWrite(outputPngFile, binaryImage);
+
+            Console.WriteLine($" Binarized Image Saved (CSV): {outputCsvFile}");
+            Console.WriteLine($" Binarized Image Saved (PNG): {outputPngFile}");
+
+            return outputCsvFile;
             //SAVED BINARIZED IMAGE AS OUTPUT 
             Console.WriteLine($" Binarized Image Saved: {outputFile}");
             return outputFile;
@@ -78,23 +95,26 @@ namespace NeoCortexApiSample
         //SPATIAL POOLER EXPERIMENT
         private SpatialPooler RunExperiment(HtmConfig cfg)
         {
-            Console.WriteLine(" Running Experiment...");
+            Console.WriteLine("?? Running Experiment...");
             var mem = new Connections(cfg);
             bool isInStableState = false;
             int numColumns = 32 * 32;
-
-            // PATH SPECIFICATION STEPS
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
+            var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
 
-            //TRAINING FOLDER
-            Console.WriteLine($" Looking for images in: {trainingFolder}");
-            var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
+
             if (trainingImages.Length == 0)
             {
-                //IF IMAGES NOT FOUND
                 Console.WriteLine(" No images found in the 'Sample' folder.");
                 return null;
             }
+
+            string sdrFolder = Path.Combine(Environment.CurrentDirectory, "SDR_Values");
+            Directory.CreateDirectory(sdrFolder);
+
+            //TRAINING FOLDER
+            Console.WriteLine($" Looking for images in: {trainingFolder}");
+           
             //IF IMAGES FOUND
             Console.WriteLine($" Found {trainingImages.Length} images in 'Sample' folder.");
             //TEST IMAGE
@@ -105,7 +125,7 @@ namespace NeoCortexApiSample
                 {
                     if (isStable)
                     {
-                        Console.WriteLine($" STABLE: Patterns={numPatterns}, Inputs={seenInputs}");
+                        Console.WriteLine($"?? STABLE: Patterns={numPatterns}, Inputs={seenInputs}");
                     }
                 },
                 requiredSimilarityThreshold: 0.975
@@ -115,41 +135,26 @@ namespace NeoCortexApiSample
             sp.Init(mem, new DistributedMemory() { ColumnDictionary = new InMemoryDistributedDictionary<int, NeoCortexApi.Entities.Column>(1) });
 
             int[] activeArray = new int[numColumns];
+            int maxCycles = 5, currentCycle = 0;
 
-            string sdrFolder = Path.Combine(Environment.CurrentDirectory, "SDR_Values");
-            if (!Directory.Exists(sdrFolder))
-                Directory.CreateDirectory(sdrFolder);
-
-            foreach (var image in trainingImages)
+            while (!isInStableState && currentCycle < maxCycles)
             {
-                string imageName = Path.GetFileNameWithoutExtension(image);
-                string inputBinaryImageFile = AdaptiveBinarizeImage(image, 28, imageName);
-
-                try
+                foreach (var image in trainingImages)
                 {
-                    var inputVector = File.ReadAllLines(inputBinaryImageFile)
-                                        .SelectMany(line => line.Split(',')
-                                        .Select(value => int.TryParse(value, out int num) ? num : 0))
-                                        .ToArray();
+                    string inputBinaryImageFile = AdaptiveBinarizeImage(image, 28, Path.GetFileNameWithoutExtension(image));
+
+                    int[] inputVector = ReadCsvIntegersSafe(inputBinaryImageFile);
 
                     sp.compute(inputVector, activeArray, true);
                     var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
 
-                    string sdrFile = Path.Combine(sdrFolder, $"sdr_{imageName}.csv");
+                    string sdrFile = Path.Combine(sdrFolder, $"SDR_{Path.GetFileNameWithoutExtension(image)}.csv");
                     File.WriteAllLines(sdrFile, activeCols.Select(x => x.ToString()));
 
-                    Console.WriteLine($" SDR values saved in {sdrFile}");
-                    Console.WriteLine($" SDR for {imageName}: {string.Join(",", activeCols)}");
-
-                    if (activeCols.Length == 0)
-                    {
-                        Console.WriteLine($" WARNING: SDR for {imageName} is empty! Check binarization.");
-                    }
+                    Console.WriteLine($"✅ SDR Values Saved: {sdrFile}");
+                    Console.WriteLine($"?? SDR Output: {string.Join(",", activeCols)}");
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($" ERROR: Could not process {imageName}. {ex.Message}");
-                }
+                currentCycle++;
             }
 
             return sp;
@@ -158,32 +163,60 @@ namespace NeoCortexApiSample
         //RECONSTRUCTION BEGINS(SPATIAL POOLER)
         private void RunRestructuringExperiment(SpatialPooler sp)
         {
-            
-            Console.WriteLine(" Running Restructuring Experiment...");
+
+            Console.WriteLine("?? Running Restructuring Experiment...");
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
-            var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
+            var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
+
+
             if (trainingImages.Length == 0)
             {
-                Console.WriteLine(" No images found for restructuring.");
+                Console.WriteLine("?? No images found for restructuring.");
                 return;
             }
-            //PUTTING IMAGE SIZE AS REQUIRED
+
             int imgSize = 28;
             int[] activeArray = new int[32 * 32];
 
             foreach (var image in trainingImages)
             {
-                Console.WriteLine($"🔍 Processing image: {image}");
-                string imageName = Path.GetFileNameWithoutExtension(image);
-                string inputBinaryImageFile = AdaptiveBinarizeImage(image, imgSize, imageName);
+                Console.WriteLine($"?? Processing Image: {image}");
+                string inputBinaryImageFile = AdaptiveBinarizeImage(image, imgSize, Path.GetFileNameWithoutExtension(image));
 
-                var inputVector = File.ReadAllLines(inputBinaryImageFile)
-                                    .SelectMany(line => line.Split(',')
-                                    .Select(value => int.TryParse(value, out int num) ? num : 0))
-                                    .ToArray();
+                int[] inputVector = ReadCsvIntegersSafe(inputBinaryImageFile);
 
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
+
+            }
+        }
+
+        private int[] ReadCsvIntegersSafe(string filePath)
+        {
+            try
+            {
+                List<int> intList = new List<int>();
+
+                using (var reader = new StreamReader(filePath))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        string line = reader.ReadLine();
+                        if (!string.IsNullOrWhiteSpace(line))
+                        {
+                            intList.AddRange(line.Split(',')
+                                .Where(s => int.TryParse(s, out _))
+                                .Select(int.Parse));
+                        }
+                    }
+                }
+
+                return intList.ToArray();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error reading CSV file '{filePath}': {ex.Message}");
+                return new int[0];  // Return an empty array to avoid crashes
                 //SDR OUTPUT FOR IMAGES
                 Console.WriteLine($"📌 SDR Output for {imageName}: {string.Join(",", activeCols)}");
             }
