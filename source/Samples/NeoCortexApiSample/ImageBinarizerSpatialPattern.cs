@@ -16,10 +16,12 @@ namespace NeoCortexApiSample
         public string inputPrefix { get; private set; } = "input_";
 
         public void Run()
+<<<<<<< HEAD
+=======
 
+>>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
         {   //EXPERIMENT OF IMAGE BINARIZATION
             Console.WriteLine($" Starting Experiment: {nameof(ImageBinarizerSpatialPattern)}");
-
             double minOctOverlapCycles = 1.0;
             double maxBoost = 5.0;
             int numColumns = 32 * 32;
@@ -86,6 +88,8 @@ namespace NeoCortexApiSample
                     writer.WriteLine(string.Join(",", rowValues));
                 }
             }
+<<<<<<< HEAD
+=======
 
 
             // Save as PNG (Image)
@@ -95,6 +99,7 @@ namespace NeoCortexApiSample
             Console.WriteLine($" Binarized Image Saved (PNG): {outputPngFile}");
 
             return outputCsvFile;
+>>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
             //SAVED BINARIZED IMAGE AS OUTPUT 
             Console.WriteLine($" Binarized Image Saved: {outputFile}");
             return outputFile;
@@ -106,15 +111,29 @@ namespace NeoCortexApiSample
             var mem = new Connections(cfg);
             bool isInStableState = false;
             int numColumns = 32 * 32;
+<<<<<<< HEAD
+
+            // PATH SPECIFICATION STEPS
+=======
+>>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
             var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
 
 
+<<<<<<< HEAD
+            //TRAINING FOLDER
+            Console.WriteLine($" Looking for images in: {trainingFolder}");
+            var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
+=======
+>>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
             if (trainingImages.Length == 0)
             {
+                //IF IMAGES NOT FOUND
                 Console.WriteLine(" No images found in the 'Sample' folder.");
                 return null;
             }
+<<<<<<< HEAD
+=======
 
             string sdrFolder = Path.Combine(Environment.CurrentDirectory, "SDR_Values");
             Directory.CreateDirectory(sdrFolder);
@@ -122,6 +141,7 @@ namespace NeoCortexApiSample
             //TRAINING FOLDER
             Console.WriteLine($" Looking for images in: {trainingFolder}");
            
+>>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
             //IF IMAGES FOUND
             Console.WriteLine($" Found {trainingImages.Length} images in 'Sample' folder.");
             //TEST IMAGE
@@ -167,6 +187,16 @@ namespace NeoCortexApiSample
             return sp;
         }
 
+<<<<<<< HEAD
+        //
+        //RECONSTRUCTION BEGINS(SPATIAL POOLER)
+        private void RunRestructuringExperiment(SpatialPooler sp)
+        {
+            
+            Console.WriteLine(" Running Restructuring Experiment...");
+            string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
+            var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
+=======
         //RECONSTRUCTION BEGINS(SPATIAL POOLER)
         private void RunRestructuringExperiment(SpatialPooler sp)
         {
@@ -176,12 +206,17 @@ namespace NeoCortexApiSample
             var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
 
 
+>>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
             if (trainingImages.Length == 0)
             {
                 Console.WriteLine("?? No images found for restructuring.");
                 return;
             }
+<<<<<<< HEAD
+            //PUTTING IMAGE SIZE AS REQUIRED
+=======
 
+>>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
             int imgSize = 28;
             int[] activeArray = new int[32 * 32];
 
@@ -194,6 +229,8 @@ namespace NeoCortexApiSample
 
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
+<<<<<<< HEAD
+=======
 
             }
         }
@@ -224,6 +261,7 @@ namespace NeoCortexApiSample
             {
                 Console.WriteLine($"❌ Error reading CSV file '{filePath}': {ex.Message}");
                 return new int[0];  // Return an empty array to avoid crashes
+>>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
                 //SDR OUTPUT FOR IMAGES
                 Console.WriteLine($"📌 SDR Output for {imageName}: {string.Join(",", activeCols)}");
             }
