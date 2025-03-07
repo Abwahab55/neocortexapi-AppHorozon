@@ -56,10 +56,17 @@ namespace NeoCortexApiSample
             Mat binaryImage = new Mat();
             Cv2.AdaptiveThreshold(image, binaryImage, 255, AdaptiveThresholdTypes.GaussianC, ThresholdTypes.Binary, 11, 2);
 
+<<<<<<< Updated upstream
             string outputFolderCsv = Path.Combine(Environment.CurrentDirectory, "BinarizedImages");
             string outputFolderPng = Path.Combine(Environment.CurrentDirectory, "BinarizedImages_PNG");
             Directory.CreateDirectory(outputFolderCsv);
             Directory.CreateDirectory(outputFolderPng);
+=======
+            // Convert the binarized image to a Numeric CSV format
+            string outputFolder = Path.Combine(Environment.CurrentDirectory, "BinarizedImages");
+            if (!Directory.Exists(outputFolder))
+                Directory.CreateDirectory(outputFolder);
+>>>>>>> Stashed changes
 
             string outputCsvFile = Path.Combine(outputFolderCsv, $"{outputName}.csv");
             string outputPngFile = Path.Combine(outputFolderPng, $"{outputName}.png");
