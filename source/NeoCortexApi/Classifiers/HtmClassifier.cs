@@ -608,7 +608,7 @@ namespace NeoCortexApi.Classifiers
         }
 
         /// <summary>
-        /// extension of the TraceCorrelationTwoLabel to get all Correlation data
+        /// extension of the TraceCorrelationTwoLabel to get all correlation data
         /// </summary>
         /// <returns></returns>
         public Dictionary<(TIN, TIN), Dictionary<string, double>> TraceCorrelation()
@@ -626,7 +626,7 @@ namespace NeoCortexApi.Classifiers
         }
 
         /// <summary>
-        /// output the correlation data matrix from TraceCorrelation of a List of labels with another label list to csv format 
+        /// output the correlation data matrix from TraceCorrelation of a list of labels with another label list to csv format 
         /// </summary>
         /// <returns></returns>
         public List<string> RenderCorrelationMatrixToCSVFormat(List<TIN> labels1, List<TIN> labels2)
