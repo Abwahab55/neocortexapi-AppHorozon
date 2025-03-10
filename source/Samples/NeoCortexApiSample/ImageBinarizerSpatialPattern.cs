@@ -1,4 +1,4 @@
-﻿using NeoCortexApi;
+using NeoCortexApi;
 using NeoCortexApi.Entities;
 using NeoCortexApi.Utility;
 using OpenCvSharp;
