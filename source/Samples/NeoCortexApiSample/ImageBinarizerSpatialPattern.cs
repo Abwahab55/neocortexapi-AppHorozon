@@ -1,27 +1,23 @@
-﻿using NeoCortex;
+﻿using NeoCortexApi;
 using NeoCortexApi.Entities;
 using NeoCortexApi.Utility;
-using NeoCortexApi;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using OpenCvSharp;
 
 namespace NeoCortexApiSample
 {
     internal class ImageBinarizerSpatialPattern
     {
-        public string inputPrefix { get; private set; } = "";
-
         public void Run()
-        {   //EXPERIMENT OF IMAGE BINARIZATION
-            Console.WriteLine($" Starting Experiment: {nameof(ImageBinarizerSpatialPattern)}");
-            double minOctOverlapCycles = 1.0;
-            double maxBoost = 5.0;
-            int numColumns = 32 * 32;
-            int imageSize = 28;
+        {
+            Console.WriteLine($"Starting Experiment: {nameof(ImageBinarizerSpatialPattern)}");
+
+            int numColumns = 32 * 32;  // 1024 columns
+            int imageSize = 28;        // 28x28 images
             var colDims = new int[] { 32, 32 };
 
             HtmConfig cfg = new HtmConfig(new int[] { imageSize, imageSize }, new int[] { numColumns })
@@ -30,21 +26,21 @@ namespace NeoCortexApiSample
                 InputDimensions = new int[] { imageSize, imageSize },
                 NumInputs = imageSize * imageSize,
                 ColumnDimensions = colDims,
-                MaxBoost = maxBoost,
+                MaxBoost = 3.0,
                 DutyCyclePeriod = 100,
-                MinPctOverlapDutyCycles = minOctOverlapCycles,
-                GlobalInhibition = false,
-                NumActiveColumnsPerInhArea = 0.03 * numColumns,
-                PotentialRadius = (int)(0.2 * imageSize * imageSize),
+                MinPctOverlapDutyCycles = 0.10,
+                GlobalInhibition = true,
+                NumActiveColumnsPerInhArea = 0.05 * numColumns,
+                PotentialRadius = (int)(0.15 * imageSize * imageSize),
                 LocalAreaDensity = -1,
-                ActivationThreshold = 8,
-                MaxSynapsesPerSegment = (int)(0.015 * numColumns),
+                ActivationThreshold = 5,
+                MaxSynapsesPerSegment = (int)(0.02 * numColumns),
                 Random = new ThreadSafeRandom(42),
-                StimulusThreshold = 8,
+                StimulusThreshold = 4,
             };
-            //RUNEXPERIMENT
+
             var sp = RunExperiment(cfg);
-            if (sp != null) RunRestructuringExperiment(sp);
+            if (sp != null) RunRestructuringExperiment(cfg);
         }
 
         private string AdaptiveBinarizeImage(string imagePath, int imageSize, string outputName)
@@ -55,7 +51,6 @@ namespace NeoCortexApiSample
             Mat binaryImage = new Mat();
             Cv2.AdaptiveThreshold(image, binaryImage, 255, AdaptiveThresholdTypes.GaussianC, ThresholdTypes.Binary, 11, 2);
 
-            // Convert the binarized image to a numeric CSV format
             string outputFolder = Path.Combine(Environment.CurrentDirectory, "BinarizedImages");
             if (!Directory.Exists(outputFolder))
                 Directory.CreateDirectory(outputFolder);
@@ -64,57 +59,29 @@ namespace NeoCortexApiSample
 
             using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                for (int y = 0; y < binaryImage.Rows; y++)
+                for (int y = 0; y < 28; y++) // Ensure exactly 28x28 = 784 values
                 {
-                    string line = string.Join(",", Enumerable.Range(0, binaryImage.Cols)
+                    string line = string.Join(",", Enumerable.Range(0, 28)
                                             .Select(x => binaryImage.At<byte>(y, x) > 128 ? "1" : "0"));
                     writer.WriteLine(line);
                 }
             }
-            //SAVED BINARIZED IMAGE AS OUTPUT 
-            Console.WriteLine($" Binarized Image Saved: {outputFile}");
+
+            Console.WriteLine($"Binarized Image Saved: {outputFile}");
             return outputFile;
         }
-        //SPATIAL POOLER EXPERIMENT
+
         private SpatialPooler RunExperiment(HtmConfig cfg)
         {
-            Console.WriteLine(" Running Experiment...");
-            var mem = new Connections(cfg);
-            bool isInStableState = false;
-            int numColumns = 32 * 32;
-
-            // PATH SPECIFICATION STEPS
+            Console.WriteLine("Running Experiment...");
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
-
-            //TRAINING FOLDER
-            Console.WriteLine($" Looking for images in: {trainingFolder}");
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
+
             if (trainingImages.Length == 0)
             {
-                //IF IMAGES NOT FOUND
-                Console.WriteLine(" No images found in the 'Sample' folder.");
+                Console.WriteLine("No images found in 'Sample' folder.");
                 return null;
             }
-            //IF IMAGES FOUND
-            Console.WriteLine($" Found {trainingImages.Length} images in 'Sample' folder.");
-            //TEST IMAGE
-            string testName = "test_image";
-
-            HomeostaticPlasticityController hpa = new HomeostaticPlasticityController(mem, trainingImages.Length * 50,
-                (isStable, numPatterns, actColAvg, seenInputs) =>
-                {
-                    if (isStable)
-                    {
-                        Console.WriteLine($" STABLE: Patterns={numPatterns}, Inputs={seenInputs}");
-                    }
-                },
-                requiredSimilarityThreshold: 0.975
-            );
-
-            SpatialPooler sp = new SpatialPooler(hpa);
-            sp.Init(mem, new DistributedMemory() { ColumnDictionary = new InMemoryDistributedDictionary<int, NeoCortexApi.Entities.Column>(1) });
-
-            int[] activeArray = new int[numColumns];
 
             string sdrFolder = Path.Combine(Environment.CurrentDirectory, "SDR_Values");
             if (!Directory.Exists(sdrFolder))
@@ -122,6 +89,11 @@ namespace NeoCortexApiSample
 
             foreach (var image in trainingImages)
             {
+                Console.WriteLine($"Processing Image: {image}");
+                var mem = new Connections(cfg);
+                SpatialPooler sp = new SpatialPooler();
+                sp.Init(mem);
+
                 string imageName = Path.GetFileNameWithoutExtension(image);
                 string inputBinaryImageFile = AdaptiveBinarizeImage(image, 28, imageName);
 
@@ -132,48 +104,57 @@ namespace NeoCortexApiSample
                                         .Select(value => int.TryParse(value, out int num) ? num : 0))
                                         .ToArray();
 
+                    if (inputVector.Length != 784)
+                    {
+                        Console.WriteLine($"WARNING: Adjusting input vector size from {inputVector.Length} to 784.");
+                        Array.Resize(ref inputVector, 784);
+                    }
+
+                    int[] activeArray = new int[32 * 32];
                     sp.compute(inputVector, activeArray, true);
-                    var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
-
-                    string sdrFile = Path.Combine(sdrFolder, $"sdr_{imageName}.csv");
-                    File.WriteAllLines(sdrFile, activeCols.Select(x => x.ToString()));
-
-                    Console.WriteLine($" SDR values saved in {sdrFile}");
-                    Console.WriteLine($" SDR for {imageName}: {string.Join(",", activeCols)}");
+                    var activeCols = ArrayUtils.IndexWhere(activeArray, el => el == 1);
 
                     if (activeCols.Length == 0)
                     {
-                        Console.WriteLine($" WARNING: SDR for {imageName} is empty! Check binarization.");
+                        Console.WriteLine($"WARNING: No active SDR columns for {imageName}. Adjust thresholds.");
                     }
+
+                    string sdrFile = Path.Combine(sdrFolder, $"sdr_{imageName}.csv");
+                    File.WriteAllLines(sdrFile, activeCols.Select(x => x.ToString()));
+                    Console.WriteLine($"SDR values saved in {sdrFile}");
                 }
-                catch (Exception ex)
+                catch (System.Exception ex)
                 {
-                    Console.WriteLine($" ERROR: Could not process {imageName}. {ex.Message}");
+                    Console.WriteLine($"ERROR: Could not process {imageName}. {ex.Message}");
                 }
             }
 
-            return sp;
+            return new SpatialPooler();
         }
 
-        //RECONSTRUCTION BEGINS(SPATIAL POOLER)
-        private void RunRestructuringExperiment(SpatialPooler sp)
+        private void RunRestructuringExperiment(HtmConfig cfg)
         {
-            
-            Console.WriteLine(" Running Restructuring Experiment...");
+            Console.WriteLine("Running Restructuring Experiment...");
             string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
             var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
+
             if (trainingImages.Length == 0)
             {
-                Console.WriteLine(" No images found for restructuring.");
+                Console.WriteLine("No images found for restructuring.");
                 return;
             }
-            //PUTTING IMAGE SIZE AS REQUIRED
+
             int imgSize = 28;
             int[] activeArray = new int[32 * 32];
 
             foreach (var image in trainingImages)
             {
-                Console.WriteLine($"🔍 Processing image: {image}");
+                Console.WriteLine($"Processing image: {image}");
+
+                var mem = new Connections(cfg);
+                SpatialPooler sp = new SpatialPooler();
+                sp.Init(mem);
+
                 string imageName = Path.GetFileNameWithoutExtension(image);
                 string inputBinaryImageFile = AdaptiveBinarizeImage(image, imgSize, imageName);
 
@@ -184,8 +165,8 @@ namespace NeoCortexApiSample
 
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
-                //SDR OUTPUT FOR IMAGES
-                Console.WriteLine($"📌 SDR Output for {imageName}: {string.Join(",", activeCols)}");
+
+                Console.WriteLine($"SDR Output for {imageName}: {string.Join(",", activeCols)}");
             }
         }
     }
