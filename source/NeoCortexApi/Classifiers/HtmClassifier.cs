@@ -48,7 +48,7 @@ namespace NeoCortexApi.Classifiers
         private Dictionary<int[], int> inputSequenceMap = new Dictionary<int[], int>();
 
         /// <summary>
-        /// Recording of all SDRs. See maxRecordedElements.
+        /// Recording of all SDRs. Here see maxRecordedElements.
         /// </summary>
         private Dictionary<TIN, List<int[]>> m_AllInputs = new Dictionary<TIN, List<int[]>>();
 
@@ -136,7 +136,6 @@ namespace NeoCortexApi.Classifiers
                 // for debugging
             }
 
-            //
             // Make sure that only few last SDRs are recorded.
             if (m_AllInputs[input].Count > maxRecordedElements)
             {
@@ -493,7 +492,6 @@ namespace NeoCortexApi.Classifiers
         }
 
         // TODO: Traces Print, reduce methods
-
         /// <summary>
         /// Calculate correlations from every saved SDRs of 2 selected Labels in to a 2D double matrix 
         /// </summary>
@@ -724,7 +722,7 @@ namespace NeoCortexApi.Classifiers
         }
 
         /// <summary>
-        /// Print correlation table from 1 label list with itself
+        /// Print the correlation table from 1 label list with itself
         /// </summary>
         public void TraceSimilarities(List<TIN> labels)
         {
