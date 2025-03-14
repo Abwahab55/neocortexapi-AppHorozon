@@ -4,9 +4,9 @@ using NeoCortexApi.Entities;
 using System.Linq;
 
 /*
-The KNN (K-Nearest-Neighbor) Classifier is designed and integrated with the Neocortex API. It takes in a
+KNN (K-Nearest-Neighbor) Classifier is designed and integrated with the Neocortex API. It takes in a
 sequence of values and preassigned labels to train the model. Once the model (a Dictionary mapping of labels to
-their sequences) is trained the user can give unclassified sequence that needs to be labeled.
+their sequences) is trained the user can give unclassified sequence which needs to be labeled.
 
 There are three labels A, B and C which has 6 sequnces in total each label has two sequnces we will use these sequnces to train the Classifier and then the classifier will
 predict the label value for unclassified sequence.
@@ -79,7 +79,7 @@ namespace NeoCortexApi.Classifiers
     public class ClassificationAndDistance : IComparable<ClassificationAndDistance>
     {
         /// <summary>
-        /// Comparison classification with respect to model data.
+        /// Comparison of classification with respect to model data.
         /// </summary>
         public string Classification { get; }
 
