@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 //False one for testing binarization
 namespace NeoCortexApiSample
 {
+    //testing dates
     internal class ImageReconstructorWithClassifiers
     {
 

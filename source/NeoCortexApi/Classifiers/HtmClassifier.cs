@@ -731,6 +731,7 @@ namespace NeoCortexApi.Classifiers
 
         /// <summary>
         /// Print correlation table from all labels in m_AllInputs
+        /// 
         /// </summary>
         public void TraceSimilarities()
         {

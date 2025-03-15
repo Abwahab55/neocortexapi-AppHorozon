@@ -166,7 +166,7 @@ namespace NeoCortexApi.Classifiers
 
             return distanceTable;
         }
-
+        //testing methods
         /// <summary>
         /// This method takes a dictionary mapping of indices of the unclassified sequence to a list of
         /// ClassificationAndDistance objects which contains the distance, classification and classification No.
