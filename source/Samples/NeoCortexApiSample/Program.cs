@@ -33,13 +33,13 @@ class Program
         binarizer.Run();
         Console.WriteLine("Image Binarization Completed.");
 
-        if (!Directory.Exists(sdrFolder))
-            Directory.CreateDirectory(sdrFolder);
+        if (!Directory.Exists("SDR_Values"))
+            Directory.CreateDirectory("SDR_Values");
 
-        var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt");
+        var sdrFiles = Directory.GetFiles("SDR_Values", "*.txt");
         if (sdrFiles.Length == 0)
         {
-            Console.WriteLine($"Error: No SDR files found in '{sdrFolder}'. Exiting...");
+            Console.WriteLine($"Error: No SDR files found in 'SDR_Values'. Exiting...");
             return;
         }
 
@@ -47,19 +47,19 @@ class Program
         IClassifier<int[], string> htmClassifier = new HtmImageClassifier();
         IClassifier<int[], string> knnClassifier = new KnnImageClassifier();
 
-        TrainClassifier(htmClassifier, sdrFolder, isHtm: true);
-        TrainClassifier(knnClassifier, sdrFolder, isHtm: false);
+        TrainClassifier(htmClassifier, "SDR_Values", isHtm: true);
+        TrainClassifier(knnClassifier, "SDR_Values", isHtm: false);
 
-        RunPredictions(htmClassifier, sdrFolder, "HTM");
-        RunPredictions(knnClassifier, sdrFolder, "KNN");
+        RunPredictions(htmClassifier, "SDR_Values", "HTM");
+        RunPredictions(knnClassifier, "SDR_Values", "KNN");
 
         Console.WriteLine("Running HTM Image Reconstruction...");
         HtmImageReconstructor htmReconstructor = new HtmImageReconstructor();
-        htmReconstructor.RunReconstruction(sdrFolder, outputFolder);
+        htmReconstructor.RunReconstruction("SDR_Values", "ReconstructedImages");
 
         Console.WriteLine("Running KNN Image Reconstruction...");
         KnnImageReconstructor knnReconstructor = new KnnImageReconstructor();
-        knnReconstructor.RunReconstruction(sdrFolder, outputFolder);
+        knnReconstructor.RunReconstruction("SDR_Values", "ReconstructedImages");
 
         Console.WriteLine("Processing Pipeline Completed.");
     }
@@ -68,29 +68,27 @@ class Program
     {
         Console.WriteLine($"Training Classifier: {classifier.GetType().Name}");
 
-        var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt").OrderBy(x => x).ToList();
+        var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt")
+                                .OrderBy(x => x)
+                                .ToList();
 
-        int trainingCycles = isHtm ? 10 : 1;
+        int cycles = isHtm ? 20 : 1; // increased cycles to help Temporal Memory learn
 
-        for (int cycle = 0; cycle < trainingCycles; cycle++)
+        for (int cycle = 0; cycle < cycles; cycle++)
         {
             foreach (var sdrFile in sdrFiles)
             {
                 string fileName = Path.GetFileNameWithoutExtension(sdrFile);
-
                 int[] sdr = File.ReadAllText(sdrFile)
                                 .Trim()
                                 .Split(',')
-                                .Select(str => int.TryParse(str, out int num) ? num : 0)
+                                .Select(int.Parse)
                                 .ToArray();
 
-                sdr = NormalizeSdr(sdr);
                 classifier.Learn(sdr, new Cell[sdr.Length]);
-
-                Console.WriteLine($"Trained on {fileName} with {sdr.Length} bits (Cycle {cycle + 1}/{trainingCycles}).");
+                Console.WriteLine($"Trained on {fileName} with {sdr.Length} bits (Cycle {cycle + 1}/{cycles}).");
             }
         }
-
         Console.WriteLine("Training Completed.");
     }
 
@@ -130,10 +128,12 @@ class Program
     private static int[] NormalizeSdr(int[] sdr)
     {
         int activeBits = (int)(sdr.Length * 0.3);
-        var sortedIndices = sdr.Select((v, i) => new { v, i })
-                               .OrderByDescending(x => x.v)
-                               .Take(activeBits)
-                               .Select(x => x.i);
+        var sortedIndices = sdr
+            .Select((value, index) => new { Value = value, Index = index })
+            .OrderByDescending(x => x.Value)
+            .Take(activeBits)
+            .Select(x => x.Index)
+            .ToArray();
 
         int[] normalizedSdr = new int[sdr.Length];
         foreach (int index in sortedIndices)
