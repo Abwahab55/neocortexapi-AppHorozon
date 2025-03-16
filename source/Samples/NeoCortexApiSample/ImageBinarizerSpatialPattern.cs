@@ -23,8 +23,8 @@ namespace NeoCortexApiSample
                 ColumnDimensions = new int[] { 28, 28 },
                 InputDimensions = new int[] { 28, 28 },
                 NumInputs = 784,
-                PotentialRadius = 28,  // Cover entire input
-                NumActiveColumnsPerInhArea = 30,  // Lowered slightly
+                PotentialRadius = 28,  // Entire input coverage
+                NumActiveColumnsPerInhArea = 30,
                 SynPermInactiveDec = 0.005,
                 SynPermActiveInc = 0.04,
                 SynPermConnected = 0.2,
@@ -65,12 +65,36 @@ namespace NeoCortexApiSample
                     .SelectMany(line => line.Trim().Select(c => c - '0'))
                     .ToArray();
 
+                // Apply Spatial Pooler
                 int[] activeColumns = new int[connections.HtmConfig.NumColumns];
                 spatialPooler.compute(binarizedPixels, activeColumns, true);
 
-                File.WriteAllText(Path.Combine(sdrOutputFolder, $"{imageName}.txt"), string.Join(",", activeColumns));
-                Console.WriteLine($"Processed SDR for {imageName}.");
+                // Normalize SDR to desired sparsity
+                int[] normalizedSDR = NormalizeSdr(activeColumns, density: 0.2);
+
+                File.WriteAllText(Path.Combine(sdrOutputFolder, $"{imageName}.txt"), string.Join(",", normalizedSDR));
+                Console.WriteLine($"Processed SDR for {imageName}. Active bits: {normalizedSDR.Count(bit => bit == 1)}");
             }
+        }
+
+        private static int[] NormalizeSdr(int[] sdr, double density = 0.2)
+        {
+            int activeBitsCount = (int)(sdr.Length * density);
+
+            var sortedIndices = sdr
+                .Select((value, index) => new { value, index })
+                .OrderByDescending(x => x.value)
+                .Take(activeBitsCount)
+                .Select(x => x.index)
+                .ToArray();
+
+            int[] normalizedSDR = new int[sdr.Length];
+            foreach (int idx in sortedIndices)
+            {
+                normalizedSDR[idx] = 1;
+            }
+
+            return normalizedSDR;
         }
     }
 }
