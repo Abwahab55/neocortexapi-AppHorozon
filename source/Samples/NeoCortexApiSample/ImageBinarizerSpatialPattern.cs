@@ -23,11 +23,11 @@ namespace NeoCortexApiSample
                 ColumnDimensions = new int[] { 28, 28 },
                 InputDimensions = new int[] { 28, 28 },
                 NumInputs = 784,
-                PotentialRadius = 16,
-                NumActiveColumnsPerInhArea = 40,
+                PotentialRadius = 28,  // Cover entire input
+                NumActiveColumnsPerInhArea = 30,  // Lowered slightly
                 SynPermInactiveDec = 0.005,
                 SynPermActiveInc = 0.04,
-                SynPermConnected = 0.1,
+                SynPermConnected = 0.2,
                 PotentialPct = 0.85
             });
 
@@ -37,7 +37,7 @@ namespace NeoCortexApiSample
 
         public void Run()
         {
-            var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
+            var images = Directory.GetFiles(trainingFolder, "*.png");
 
             string sdrOutputFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SDR_Values");
             Directory.CreateDirectory(sdrOutputFolder);
@@ -45,12 +45,11 @@ namespace NeoCortexApiSample
             string binarizedImagesFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BinarizedImages");
             Directory.CreateDirectory(binarizedImagesFolder);
 
-            foreach (var imagePath in trainingImages)
+            foreach (var imagePath in images)
             {
                 string imageName = Path.GetFileNameWithoutExtension(imagePath);
-                Console.WriteLine($"Processing Image: {imageName}");
 
-                var binarizerParams = new BinarizerParams
+                var binParams = new BinarizerParams
                 {
                     InputImagePath = imagePath,
                     OutputImagePath = Path.Combine(binarizedImagesFolder, $"{imageName}_binarized.png"),
@@ -59,21 +58,19 @@ namespace NeoCortexApiSample
                     ImageHeight = 28
                 };
 
-                var binarizer = new ImageBinarizer(binarizerParams);
+                var binarizer = new ImageBinarizer(binParams);
                 binarizer.Run();
 
-                int[] binarizedPixels = File.ReadAllLines(binarizerParams.OutputImagePath)
+                int[] binarizedPixels = File.ReadAllLines(binParams.OutputImagePath)
                     .SelectMany(line => line.Trim().Select(c => c - '0'))
                     .ToArray();
 
                 int[] activeColumns = new int[connections.HtmConfig.NumColumns];
                 spatialPooler.compute(binarizedPixels, activeColumns, true);
 
-                File.WriteAllText(Path.Combine(sdrOutputFolder, $"input_{imageName}.txt"), string.Join(",", activeColumns));
-                Console.WriteLine($"SDR Active Bits for {imageName}: {activeColumns.Count(b => b == 1)}");
+                File.WriteAllText(Path.Combine(sdrOutputFolder, $"{imageName}.txt"), string.Join(",", activeColumns));
+                Console.WriteLine($"Processed SDR for {imageName}.");
             }
-
-            Console.WriteLine("Image Processing Completed.");
         }
     }
 }
