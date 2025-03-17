@@ -4,7 +4,7 @@ using NeoCortexApi.Entities;
 using System.Linq;
 
 /*
-KNN (K-Nearest-Neighbor) Classifier is designed and integrated with the Neocortex API. It takes in a
+The KNN (K-Nearest-Neighbor) Classifier is designed and integrated with the Neocortex API. It takes in a
 sequence of values and preassigned labels to train the model. Once the model (a Dictionary mapping of labels to
 their sequences) is trained the user can give unclassified sequence which needs to be labeled.
 
@@ -133,7 +133,7 @@ namespace NeoCortexApi.Classifiers
         /// The active index from the unclassified Sequence.
         /// </param>
         /// <returns>
-        /// Returns the smallest value of type int from the list.
+        /// This returns the smallest value of type int from the list.
         /// </returns>
         private int LeastValue(ref int[] classifiedSequence, int unclassifiedIdx)
         {
@@ -284,7 +284,7 @@ namespace NeoCortexApi.Classifiers
         }
 
         /// <summary>
-        /// Clears the model from all the stored sequences.
+        /// Clears the model from all the stored Sequences.
         /// </summary>
         public void ClearState() => _sdrMap.Clear();
     }
