@@ -11,6 +11,7 @@ using OpenCvSharp;
 
 namespace NeoCortexApiSample
 {
+    //image binarization code
     internal class ImageBinarizerSpatialPattern
     {
         public string inputPrefix { get; private set; } = "input_";
@@ -170,7 +171,7 @@ namespace NeoCortexApiSample
 
                 sp.compute(inputVector, activeArray, true);
                 var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
-
+                //print SDR output
                 Console.WriteLine($"✅ SDR Output: {string.Join(",", activeCols)}");
             }
         }
@@ -200,7 +201,8 @@ namespace NeoCortexApiSample
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error reading CSV file '{filePath}': {ex.Message}");
-                return new int[0];  // To avoid crashes return an empty array
+                // To avoid crashes return an empty array
+                return new int[0];  
             }
         }
     }
