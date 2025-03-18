@@ -69,6 +69,7 @@ namespace NeoCortexApiSample
             using (StreamWriter writer = new StreamWriter(outputCsvFile))
             {
                 var indexer = binaryImage.GetGenericIndexer<byte>();
+                //array for getting each numbers
                 for (int i = 0; i < binaryImage.Rows; i++)
                 {
                     List<string> rowValues = new List<string>();
