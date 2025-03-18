@@ -80,6 +80,7 @@ namespace NeoCortexApiSample
                 }
             }
 
+           
             // Save as PNG format(Image)
             Cv2.ImWrite(outputPngFile, binaryImage);
 
