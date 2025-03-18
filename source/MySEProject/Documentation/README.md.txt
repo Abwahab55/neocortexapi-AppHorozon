@@ -4,8 +4,6 @@
 
 [![Built With - ❤️](https://img.shields.io/badge/Built_With-%E2%9D%A4-2ea44f?style=for-the-badge)](#)
 
-
-
 Project Overview:
 The project titled "Investigate Image Reconstruction by Using Classifiers" focuses on exploring the role of machine learning classifiers within the framework of Hierarchical Temporal Memory (HTM) for reconstructing images from Sparse Distributed Representations (SDRs). The implementation is carried out using the C# programming language. The objective is to understand how classifiers can be effectively used to reverse the HTM encoding process and regenerate input images with minimal loss of information. The project involves working with two existing classifiers, HtmClassifier and K-Nearest Neighbors (KNN), both of which were previously implemented in the HTM system by students.
 
@@ -37,7 +35,6 @@ capture the underlying patterns within the data.
 <<<<<<< HEAD
 #Sparse Distributed representations (SDRs)
 =======
-
 #Sparse Distributed representations (SDRs):
 >>>>>>> cdc732835e87c4cd74085dea4418268679eb45f6
 Sparse Distributed representations (SDRs) of input patterns are used in HTM's language. With a set amount of active bits,it produces SDRs internally.These bits have semantic value.As a result, two inputs with equivalent semantic meaning must have equal active bit representation in SDR, which plays
