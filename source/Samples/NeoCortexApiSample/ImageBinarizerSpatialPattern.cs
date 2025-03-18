@@ -32,9 +32,8 @@ namespace NeoCortexApiSample
                 InputDimensions = new int[] { imageSize, imageSize },
                 NumInputs = imageSize * imageSize,
                 ColumnDimensions = colDims,
-                DutyCyclePeriod = 100,
                 MaxBoost = maxBoost,
-                
+                DutyCyclePeriod = 100,
                 MinPctOverlapDutyCycles = minOctOverlapCycles,
                 GlobalInhibition = false,
                 NumActiveColumnsPerInhArea = 0.03 * numColumns,
