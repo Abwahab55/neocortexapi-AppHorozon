@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using NeoCortexApi.Classifiers;
 using NeoCortexApi.Entities;
+using NeoCortexApi.Utility;
 using NeoCortexApiSample;
 
 class Program
@@ -14,52 +15,39 @@ class Program
         string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
         string sdrFolder = Path.Combine(Environment.CurrentDirectory, "SDR_Values");
         string outputFolder = Path.Combine(Environment.CurrentDirectory, "ReconstructedImages");
-
-        if (!Directory.Exists(trainingFolder))
-        {
-            Console.WriteLine($"Error: Training folder '{trainingFolder}' does not exist.");
-            return;
-        }
-
-        var imageFiles = Directory.GetFiles(trainingFolder, "*.png");
-        if (imageFiles.Length == 0)
-        {
-            Console.WriteLine($"Error: No PNG images found in '{trainingFolder}'.");
-            return;
-        }
+        string reconstructedSdrFolder = Path.Combine(Environment.CurrentDirectory, "Reconstructed_SDRs");
+        EnsureDirectoryExists(trainingFolder);
+        EnsureDirectoryExists(sdrFolder);
+        EnsureDirectoryExists(outputFolder);
+        EnsureDirectoryExists(reconstructedSdrFolder);
 
         Console.WriteLine("Running Image Binarization...");
         var binarizer = new ImageBinarizerSpatialPattern(trainingFolder);
         binarizer.Run();
         Console.WriteLine("Image Binarization Completed.");
 
-        if (!Directory.Exists("SDR_Values"))
-            Directory.CreateDirectory("SDR_Values");
-
-        var sdrFiles = Directory.GetFiles("SDR_Values", "*.txt");
+        var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt");
         if (sdrFiles.Length == 0)
         {
-            Console.WriteLine($"Error: No SDR files found in 'SDR_Values'. Exiting...");
+            Console.WriteLine($"Error: No SDR files found in '{sdrFolder}'. Exiting...");
             return;
         }
 
         Console.WriteLine("Initializing Classifiers...");
-        IClassifier<int[], string> htmClassifier = new HtmImageClassifier();
-        IClassifier<int[], string> knnClassifier = new KnnImageClassifier();
+        // Replace the classifier initialization:
+        var htmClassifier = new HtmImageClassifier();
+        var knnClassifier = new KnnImageClassifier(); // Fixed instantiation
+        TrainClassifier(htmClassifier, sdrFolder, isHtm: true);
+        TrainClassifier(knnClassifier, sdrFolder, isHtm: false);
 
-        TrainClassifier(htmClassifier, "SDR_Values", isHtm: true);
-        TrainClassifier(knnClassifier, "SDR_Values", isHtm: false);
+        Console.WriteLine("Running Image Reconstruction via Classifiers...");
+        var htmReconstructor = new HtmImageReconstructor();
+        htmReconstructor.RunReconstruction(sdrFolder, outputFolder, reconstructedSdrFolder, htmClassifier);
+        var knnReconstructor = new KnnImageReconstructor();
+        knnReconstructor.RunReconstruction(sdrFolder, outputFolder, reconstructedSdrFolder, knnClassifier);
 
-        RunPredictions(htmClassifier, "SDR_Values", "HTM");
-        RunPredictions(knnClassifier, "SDR_Values", "KNN");
-
-        Console.WriteLine("Running HTM Image Reconstruction...");
-        HtmImageReconstructor htmReconstructor = new HtmImageReconstructor();
-        htmReconstructor.RunReconstruction("SDR_Values", "ReconstructedImages");
-
-        Console.WriteLine("Running KNN Image Reconstruction...");
-        KnnImageReconstructor knnReconstructor = new KnnImageReconstructor();
-        knnReconstructor.RunReconstruction("SDR_Values", "ReconstructedImages");
+        Console.WriteLine("Computing Similarity between Original and Reconstructed SDRs...");
+        CompareOriginalAndReconstructedSDRs(sdrFolder, reconstructedSdrFolder);
 
         Console.WriteLine("Processing Pipeline Completed.");
     }
@@ -68,77 +56,92 @@ class Program
     {
         Console.WriteLine($"Training Classifier: {classifier.GetType().Name}");
 
-        var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt")
-                                .OrderBy(x => x)
-                                .ToList();
+        var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt").OrderBy(x => x).ToList();
+        int trainingCycles = isHtm ? 20 : 1;  // Train HTM multiple times, KNN only once
 
-        int cycles = isHtm ? 20 : 1; // increased cycles to help Temporal Memory learn
-
-        for (int cycle = 0; cycle < cycles; cycle++)
+        for (int cycle = 0; cycle < trainingCycles; cycle++)
         {
             foreach (var sdrFile in sdrFiles)
             {
                 string fileName = Path.GetFileNameWithoutExtension(sdrFile);
-                int[] sdr = File.ReadAllText(sdrFile)
-                                .Trim()
-                                .Split(',')
-                                .Select(int.Parse)
-                                .ToArray();
+                int[] sdr = ReadSdrFromFile(sdrFile);
 
                 classifier.Learn(sdr, new Cell[sdr.Length]);
-                Console.WriteLine($"Trained on {fileName} with {sdr.Length} bits (Cycle {cycle + 1}/{cycles}).");
+
+                if (cycle == 0)  // Log training only once
+                    Console.WriteLine($"Trained on {fileName} (SDR length {sdr.Length})");
+            }
+
+            if (isHtm)
+            {
+                Console.WriteLine($"HTM Training Cycle {cycle + 1}/{trainingCycles} completed.");
             }
         }
-        Console.WriteLine("Training Completed.");
+
+        Console.WriteLine("Training Completed.\n");
     }
 
-    private static void RunPredictions(IClassifier<int[], string> classifier, string sdrFolder, string method)
+    private static void CompareOriginalAndReconstructedSDRs(string sdrFolder, string reconstructedSdrFolder)
     {
-        Console.WriteLine($"Running Predictions using {method} Classifier...");
+        var originalFiles = Directory.GetFiles(sdrFolder, "*.txt").OrderBy(x => x).ToList();
 
-        var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt").OrderBy(x => x).ToList();
-
-        foreach (var sdrFile in sdrFiles)
+        foreach (var origFile in originalFiles)
         {
-            string item = Path.GetFileNameWithoutExtension(sdrFile).Replace("input_", "");
+            string name = Path.GetFileNameWithoutExtension(origFile);
+            string htmReconFile = Path.Combine(reconstructedSdrFolder, $"{name}_HTM_Reconstructed.txt");
+            string knnReconFile = Path.Combine(reconstructedSdrFolder, $"{name}_KNN_Reconstructed.txt");
 
-            int[] inputSDR = File.ReadAllText(sdrFile)
-                                 .Trim()
-                                 .Split(',')
-                                 .Select(str => int.TryParse(str, out int num) ? num : 0)
-                                 .ToArray();
-
-            var predictedSDRs = classifier.GetPredictedInputValues(inputSDR, 3);
-
-            if (predictedSDRs.Count == 0)
+            if (!File.Exists(htmReconFile) || !File.Exists(knnReconFile))
             {
-                Console.WriteLine($"No predictions for {item}. The model did not return predictive SDRs.");
+                Console.WriteLine($"Missing reconstructed SDRs for {name}. Skipping comparison.");
                 continue;
             }
 
-            Console.WriteLine($"Prediction Results for {item} using {method}:");
-            foreach (var prediction in predictedSDRs)
-            {
-                Console.WriteLine($"Similarity: {prediction.Similarity * 100:F2}%");
-            }
-            Console.WriteLine();
+            int[] origSdr = ReadSdrFromFile(origFile);
+            int[] htmReconSdr = ReadSdrFromFile(htmReconFile);
+            int[] knnReconSdr = ReadSdrFromFile(knnReconFile);
+
+            double htmSim = ComputeHybridSimilarity(origSdr, htmReconSdr);
+            double knnSim = ComputeHybridSimilarity(origSdr, knnReconSdr);
+
+            Console.WriteLine($"Similarity Results for {name}:");
+            Console.WriteLine($" HTM Similarity: {htmSim:0.00}%");
+            Console.WriteLine($" KNN Similarity: {knnSim:0.00}%\n");
         }
     }
 
-    private static int[] NormalizeSdr(int[] sdr)
+    private static int[] ReadSdrFromFile(string path)
     {
-        int activeBits = (int)(sdr.Length * 0.3);
-        var sortedIndices = sdr
-            .Select((value, index) => new { Value = value, Index = index })
-            .OrderByDescending(x => x.Value)
-            .Take(activeBits)
-            .Select(x => x.Index)
-            .ToArray();
+        return File.ReadAllText(path).Trim()
+                   .Split(',')
+                   .Where(str => str != "")
+                   .Select(str => int.TryParse(str, out int bit) ? bit : 0)
+                   .ToArray();
+    }
 
-        int[] normalizedSdr = new int[sdr.Length];
-        foreach (int index in sortedIndices)
-            normalizedSdr[index] = 1;
+    private static double ComputeHybridSimilarity(int[] sdr1, int[] sdr2)
+    {
+        if (sdr1.Length != sdr2.Length)
+            throw new ArgumentException("SDRs must be same length");
 
-        return normalizedSdr;
+        double jaccardSim = MathHelpers.JaccardSimilarityofBinaryArrays(sdr1, sdr2);
+        double hammingSim = ComputeHammingSimilarity(sdr1, sdr2);
+
+        return (jaccardSim + hammingSim) / 2.0;
+    }
+
+    private static double ComputeHammingSimilarity(int[] sdr1, int[] sdr2)
+    {
+        if (sdr1.Length != sdr2.Length)
+            throw new ArgumentException("SDRs must be same length");
+
+        int matchingBits = sdr1.Zip(sdr2, (a, b) => a == b ? 1 : 0).Sum();
+        return 100.0 * matchingBits / sdr1.Length;
+    }
+
+    private static void EnsureDirectoryExists(string path)
+    {
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
     }
 }
