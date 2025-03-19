@@ -733,7 +733,7 @@ namespace NeoCortexApi.Classifiers
         /// Print correlation table from all labels in m_AllInputs
         /// 
         /// </summary>
-        /// test clear
+        /// test solved
         public void TraceSimilarities()
         {
             TraceSimilarities(m_AllInputs.Keys.ToList<TIN>(), m_AllInputs.Keys.ToList<TIN>());
