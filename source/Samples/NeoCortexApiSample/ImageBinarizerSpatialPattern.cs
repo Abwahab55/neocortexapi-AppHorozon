@@ -23,7 +23,7 @@ namespace NeoCortexApiSample
                 ColumnDimensions = new int[] { 28, 28 },
                 InputDimensions = new int[] { 28, 28 },
                 NumInputs = 784,
-                PotentialRadius = 28,  // Entire input coverage
+                PotentialRadius = 28,
                 NumActiveColumnsPerInhArea = 30,
                 SynPermInactiveDec = 0.005,
                 SynPermActiveInc = 0.04,
@@ -52,35 +52,35 @@ namespace NeoCortexApiSample
                 var binParams = new BinarizerParams
                 {
                     InputImagePath = imagePath,
-                    OutputImagePath = Path.Combine(binarizedImagesFolder, $"{imageName}_binarized.png"),
+                    OutputImagePath = Path.Combine(binarizedImagesFolder, $"{imageName}_binarized.txt"),
                     GreyScale = true,
                     ImageWidth = 28,
-                    ImageHeight = 28
+                    ImageHeight = 28  // resize to 28x28 to match HTM input size
                 };
 
                 var binarizer = new ImageBinarizer(binParams);
                 binarizer.Run();
 
+                // Read the binarized image (0/1 text format) into an array
                 int[] binarizedPixels = File.ReadAllLines(binParams.OutputImagePath)
-                    .SelectMany(line => line.Trim().Select(c => c - '0'))
-                    .ToArray();
+                                            .SelectMany(line => line.Trim().Select(c => c - '0'))
+                                            .ToArray();
 
-                // Apply Spatial Pooler
+                // Apply Spatial Pooler to get SDR of active columns
                 int[] activeColumns = new int[connections.HtmConfig.NumColumns];
                 spatialPooler.compute(binarizedPixels, activeColumns, true);
 
-                // Normalize SDR to desired sparsity
-                int[] normalizedSDR = NormalizeSdr(activeColumns, density: 0.2);
-
-                File.WriteAllText(Path.Combine(sdrOutputFolder, $"{imageName}.txt"), string.Join(",", normalizedSDR));
-                Console.WriteLine($"Processed SDR for {imageName}. Active bits: {normalizedSDR.Count(bit => bit == 1)}");
+                // Save the raw SDR (active columns as 0/1) to a file
+                File.WriteAllText(Path.Combine(sdrOutputFolder, $"{imageName}.txt"),
+                                  string.Join(",", activeColumns));
+                Console.WriteLine($"Processed SDR for {imageName}. Active bits: {activeColumns.Count(bit => bit == 1)}");
             }
         }
 
-        private static int[] NormalizeSdr(int[] sdr, double density = 0.2)
+        // (NormalizeSdr method is no longer used; we preserve it here for reference)
+        private static int[] NormalizeSdr(int[] sdr, double density = 0.25)
         {
             int activeBitsCount = (int)(sdr.Length * density);
-
             var sortedIndices = sdr
                 .Select((value, index) => new { value, index })
                 .OrderByDescending(x => x.value)
@@ -93,7 +93,6 @@ namespace NeoCortexApiSample
             {
                 normalizedSDR[idx] = 1;
             }
-
             return normalizedSDR;
         }
     }
