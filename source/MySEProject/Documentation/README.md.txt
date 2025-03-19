@@ -40,7 +40,7 @@ an important role in HTM learning. SDRs are a way of encoding information using 
 <<<<<<< HEAD
 
 #Difference between HTM & KNN
-=======
+=====
 #Difference between HTM & KNN:
 >>>>>>> cdc732835e87c4cd74085dea4418268679eb45f6
 HTM: Focused on temporal learning and is ideal for applications involving time-series data and sequences. It is biologically inspired and mimics brain-like structures.
