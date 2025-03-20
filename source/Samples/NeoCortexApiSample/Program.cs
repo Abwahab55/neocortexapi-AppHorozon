@@ -16,6 +16,7 @@ class Program
         string sdrFolder = Path.Combine(Environment.CurrentDirectory, "SDR_Values");
         string outputFolder = Path.Combine(Environment.CurrentDirectory, "ReconstructedImages");
         string reconstructedSdrFolder = Path.Combine(Environment.CurrentDirectory, "Reconstructed_SDRs");
+
         EnsureDirectoryExists(trainingFolder);
         EnsureDirectoryExists(sdrFolder);
         EnsureDirectoryExists(outputFolder);
@@ -37,8 +38,8 @@ class Program
         var htmClassifier = new HtmImageClassifier();
         var knnClassifier = new KnnImageClassifier();
 
-        TrainClassifier(htmClassifier, sdrFolder, isHtm: true);
-        TrainClassifier(knnClassifier, sdrFolder, isHtm: false);
+        TrainClassifier(htmClassifier, sdrFolder, true);
+        TrainClassifier(knnClassifier, sdrFolder, false);
 
         Console.WriteLine("Running Image Reconstruction via Classifiers...");
         var htmReconstructor = new HtmImageReconstructor();
@@ -55,7 +56,6 @@ class Program
     private static void TrainClassifier(IClassifier<int[], string> classifier, string sdrFolder, bool isHtm)
     {
         Console.WriteLine($"Training Classifier: {classifier.GetType().Name}");
-
         var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt").OrderBy(x => x).ToList();
         int trainingCycles = isHtm ? 20 : 1;
 
@@ -65,26 +65,21 @@ class Program
             {
                 string fileName = Path.GetFileNameWithoutExtension(sdrFile);
                 int[] sdr = ReadSdrFromFile(sdrFile);
-
                 classifier.Learn(sdr, new Cell[sdr.Length]);
-
                 if (cycle == 0)
                     Console.WriteLine($"Trained on {fileName} (SDR length {sdr.Length})");
             }
-
             if (isHtm)
             {
                 Console.WriteLine($"HTM Training Cycle {cycle + 1}/{trainingCycles} completed.");
             }
         }
-
-        Console.WriteLine("Training Completed.\n");
+        Console.WriteLine("Training Completed.");
     }
 
     private static void CompareOriginalAndReconstructedSDRs(string sdrFolder, string reconstructedSdrFolder)
     {
         var originalFiles = Directory.GetFiles(sdrFolder, "*.txt").OrderBy(x => x).ToList();
-
         foreach (var origFile in originalFiles)
         {
             string name = Path.GetFileNameWithoutExtension(origFile);
@@ -101,12 +96,12 @@ class Program
             int[] htmReconSdr = ReadSdrFromFile(htmReconFile);
             int[] knnReconSdr = ReadSdrFromFile(knnReconFile);
 
-            double htmSim = ComputeHybridSimilarity(origSdr, htmReconSdr);
-            double knnSim = ComputeHybridSimilarity(origSdr, knnReconSdr);
+            double htmSim = ComputeHybridSimilarity(origSdr, htmReconSdr) * 100;
+            double knnSim = ComputeHybridSimilarity(origSdr, knnReconSdr) * 100;
 
             Console.WriteLine($"Similarity Results for {name}:");
             Console.WriteLine($" HTM Similarity: {htmSim:0.00}%");
-            Console.WriteLine($" KNN Similarity: {knnSim:0.00}%\n");
+            Console.WriteLine($" KNN Similarity: {knnSim:0.00}%");
         }
     }
 
@@ -125,9 +120,13 @@ class Program
             throw new ArgumentException("SDRs must be the same length");
 
         double jaccardSim = MathHelpers.JaccardSimilarityofBinaryArrays(sdr1, sdr2);
+        double dot = sdr1.Zip(sdr2, (a, b) => a * b).Sum();
+        double magA = Math.Sqrt(sdr1.Sum(a => a * a));
+        double magB = Math.Sqrt(sdr2.Sum(b => b * b));
+        double cosSim = (magA == 0 || magB == 0) ? 0.0 : dot / (magA * magB);
         double hammingSim = ComputeHammingSimilarity(sdr1, sdr2);
 
-        return (jaccardSim + hammingSim) / 2.0;
+        return (jaccardSim + cosSim + hammingSim) / 3.0;
     }
 
     private static double ComputeHammingSimilarity(int[] sdr1, int[] sdr2)
@@ -136,7 +135,7 @@ class Program
             throw new ArgumentException("SDRs must be the same length");
 
         int matchingBits = sdr1.Zip(sdr2, (a, b) => a == b ? 1 : 0).Sum();
-        return 100.0 * matchingBits / sdr1.Length;
+        return (double)matchingBits / sdr1.Length;
     }
 
     private static void EnsureDirectoryExists(string path)
