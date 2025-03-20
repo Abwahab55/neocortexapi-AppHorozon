@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using NeoCortexApi;
@@ -11,13 +11,11 @@ namespace NeoCortexApiSample
     public class HtmImageClassifier : IClassifier<int[], string>
     {
         private Dictionary<string, int[]> trainingData = new Dictionary<string, int[]>();
-        private SpatialPooler sp;
         private TemporalMemory tm;
         private Connections connections;
 
         public HtmImageClassifier()
         {
-            // Initialize SP/TM with 28x28 columns (784 columns).
             connections = new Connections(new HtmConfig
             {
                 ColumnDimensions = new int[] { 28, 28 },
@@ -25,13 +23,10 @@ namespace NeoCortexApiSample
                 NumInputs = 784,
                 PotentialPct = 0.6,
                 SynPermInactiveDec = 0.005,
-                SynPermActiveInc = 0.03,
+                SynPermActiveInc = 0.05,   // 🔥 Increased Learning Speed
                 SynPermConnected = 0.2,
-                NumActiveColumnsPerInhArea = 40
+                NumActiveColumnsPerInhArea = 50 // 🔥 Increased Active Columns
             });
-
-            sp = new SpatialPooler();
-            sp.Init(connections);
 
             tm = new TemporalMemory();
             tm.Init(connections);
@@ -39,69 +34,69 @@ namespace NeoCortexApiSample
 
         public void Learn(int[] input, Cell[] output)
         {
-            int[] activeColumns = new int[connections.HtmConfig.NumColumns];
+            Console.WriteLine($"\n📥 [LEARNING] Input SDR: {string.Join(",", input.Take(20))}...");
 
-            // Compute spatial pooler output (active columns)
-            sp.compute(input, activeColumns, learn: true);
-            tm.Compute(activeColumns, learn: true);
+            tm.Compute(input, learn: true);
 
-            // Store trained patterns
+            // 🔍 Debugging: Check if HTM is actually learning
+
             string key = string.Join(",", input);
             if (!trainingData.ContainsKey(key))
             {
-                trainingData[key] = activeColumns;
+                trainingData[key] = input;
             }
         }
 
-        // ? Implementing the required method: GetPredictedInputValue(Cell[])
         public int[] GetPredictedInputValue(Cell[] unclassifiedCells)
         {
-            if (unclassifiedCells == null || unclassifiedCells.Length == 0)
-                return Array.Empty<int>();
+            Console.WriteLine("\n🔍 [DEBUG] Entered GetPredictedInputValue()");
 
-            // Convert Cell[] to SDR indices
+            if (unclassifiedCells == null || unclassifiedCells.Length == 0)
+            {
+                Console.WriteLine("⚠️ [WARNING] No unclassified cells provided!");
+                return Array.Empty<int>();
+            }
+
             int[] inputSdr = unclassifiedCells.Select(c => c.Index).ToArray();
+            Console.WriteLine($"🟡 [INFO] Extracted Input SDR: {string.Join(",", inputSdr.Take(10))}...");
 
             var predictedResults = GetPredictedInputValues(inputSdr, 1);
 
-            if (predictedResults.Count > 0)
-                return predictedResults[0].PredictedInput;
+            if (predictedResults == null || predictedResults.Count == 0)
+            {
+                Console.WriteLine("⚠️ [WARNING] No predictions found!");
+                return Array.Empty<int>();
+            }
 
-            return Array.Empty<int>();
+            Console.WriteLine($"✅ [SUCCESS] Prediction generated.");
+            return predictedResults[0].PredictedInput;
         }
 
         public List<ClassifierResult<int[]>> GetPredictedInputValues(int[] inputSdr, short howMany = 3)
         {
-            int[] activeColumns = new int[connections.HtmConfig.NumColumns];
-            sp.compute(inputSdr, activeColumns, learn: false);
-            tm.Compute(activeColumns, learn: false);
+            tm.Compute(inputSdr, learn: false);
 
             var results = new List<ClassifierResult<int[]>>();
 
             foreach (var kv in trainingData)
             {
-                string key = kv.Key;
                 int[] storedSdr = kv.Value;
+                if (storedSdr.Length != inputSdr.Length)
+                {
+                    continue;
+                }
 
-                double similarity = ComputeHybridSimilarity(storedSdr, activeColumns);
+                double similarity = ComputeHybridSimilarity(storedSdr, inputSdr);
+                Console.WriteLine($"📊 [SIMILARITY] {similarity} for stored SDR: {string.Join(",", storedSdr.Take(10))}...");
+
                 results.Add(new ClassifierResult<int[]>
                 {
-                    PredictedInput = storedSdr,
-                    NumOfSameBits = storedSdr.Intersect(activeColumns).Count(),
+                    PredictedInput = storedSdr, // 🔥 Removed Unnecessary Bit Inversion
                     Similarity = similarity
                 });
             }
 
-            results = results.OrderByDescending(r => r.Similarity).Take(howMany).ToList();
-
-            Console.WriteLine("----- HTM Classifier Debug -----");
-            foreach (var res in results)
-            {
-                Console.WriteLine($"Similarity: {res.Similarity * 100:0.00}%");
-            }
-            Console.WriteLine("-------------------------------");
-
-            return results;
+            return results.OrderByDescending(r => r.Similarity).Take(howMany).ToList();
         }
 
         private static double ComputeHybridSimilarity(int[] a, int[] b)
