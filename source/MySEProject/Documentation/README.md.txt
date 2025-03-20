@@ -1,16 +1,11 @@
 # ML 24/25-01 Investigate Image Reconstruction by using Classifiers
-
 [![Made with - C#](https://img.shields.io/badge/Made_with-C%23-2ea44f?style=for-the-badge&logo=C%23)](https://learn.microsoft.com/en-us/dotnet/csharp/)
 
 [![Built With - ❤️](https://img.shields.io/badge/Built_With-%E2%9D%A4-2ea44f?style=for-the-badge)](#)
-
-
-
 Project Overview:
 The project titled "Investigate Image Reconstruction by Using Classifiers" focuses on exploring the role of machine learning classifiers within the framework of Hierarchical Temporal Memory (HTM) for reconstructing images from Sparse Distributed Representations (SDRs). The implementation is carried out using the C# programming language. The objective is to understand how classifiers can be effectively used to reverse the HTM encoding process and regenerate input images with minimal loss of information. The project involves working with two existing classifiers, HtmClassifier and K-Nearest Neighbors (KNN), both of which were previously implemented in the HTM system by students.
 
 #Background and Motivation:
-
 Hierarchical Temporal Memory (HTM) is a computational framework inspired by the structure and function of the human neocortex. HTM has been used for anomaly detection, prediction, and classification tasks. HTM systems encode input data into Sparse Distributed Representations (SDRs), which are highly efficient and resilient to noise. While SDRs are excellent for learning and making predictions, the ability to reverse-engineer these SDRs back into their original input form is equally valuable. This project investigates how classifiers can assist in reconstructing input images from SDRs, effectively acting as a reverse encoder.
 The need for accurate image reconstruction arises in various domains, such as:
 Computer Vision: Reconstructing images from compressed representations.
@@ -37,7 +32,6 @@ capture the underlying patterns within the data.
 <<<<<<< HEAD
 #Sparse Distributed representations (SDRs)
 =======
-
 #Sparse Distributed representations (SDRs):
 >>>>>>> cdc732835e87c4cd74085dea4418268679eb45f6
 Sparse Distributed representations (SDRs) of input patterns are used in HTM's language. With a set amount of active bits,it produces SDRs internally.These bits have semantic value.As a result, two inputs with equivalent semantic meaning must have equal active bit representation in SDR, which plays
@@ -46,7 +40,7 @@ an important role in HTM learning. SDRs are a way of encoding information using 
 <<<<<<< HEAD
 
 #Difference between HTM & KNN
-=======
+=====
 #Difference between HTM & KNN:
 >>>>>>> cdc732835e87c4cd74085dea4418268679eb45f6
 HTM: Focused on temporal learning and is ideal for applications involving time-series data and sequences. It is biologically inspired and mimics brain-like structures.
