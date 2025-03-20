@@ -6,7 +6,7 @@ using System.Linq;
 /*
 The KNN (K-Nearest-Neighbor) Classifier is designed and integrated with the Neocortex API. It takes in a
 sequence of values and preassigned labels to train the model. Once the model (a Dictionary mapping of labels to
-their sequences) is trained the user can give unclassified sequence that needs to be labeled.
+their sequences) is trained the user can give unclassified sequence which needs to be labeled.
 
 There are three labels A, B and C which has 6 sequnces in total each label has two sequnces we will use these sequnces to train the Classifier and then the classifier will
 predict the label value for unclassified sequence.
@@ -79,7 +79,7 @@ namespace NeoCortexApi.Classifiers
     public class ClassificationAndDistance : IComparable<ClassificationAndDistance>
     {
         /// <summary>
-        /// Comparison classification with respect to model data.
+        /// Comparison of classification with respect to model data.
         /// </summary>
         public string Classification { get; }
 
@@ -133,7 +133,7 @@ namespace NeoCortexApi.Classifiers
         /// The active index from the unclassified Sequence.
         /// </param>
         /// <returns>
-        /// Returns the smallest value of type int from the list.
+        /// This returns the smallest value of type int from the list.
         /// </returns>
         private int LeastValue(ref int[] classifiedSequence, int unclassifiedIdx)
         {
@@ -166,7 +166,7 @@ namespace NeoCortexApi.Classifiers
 
             return distanceTable;
         }
-
+        //testing methods
         /// <summary>
         /// This method takes a dictionary mapping of indices of the unclassified sequence to a list of
         /// ClassificationAndDistance objects which contains the distance, classification and classification No.
@@ -284,7 +284,7 @@ namespace NeoCortexApi.Classifiers
         }
 
         /// <summary>
-        /// Clears the model from all the stored sequences.
+        /// Clears the model from all the stored Sequences.
         /// </summary>
         public void ClearState() => _sdrMap.Clear();
     }
