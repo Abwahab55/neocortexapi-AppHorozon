@@ -259,66 +259,61 @@ namespace NeoCortexApiSample
                 // Encode the current input value using the provided encoder, resulting in an SDR
                 var inpSdr = encoder.Encode(input);
 
-                // Compute the active columns in the spatial pooler for the given input SDR, without learning.
+                // ... (previous code encoding inputs and computing actCols) ...
+
+                // Compute the active columns in the spatial pooler for the given input SDR (no learning).
                 var actCols = sp.Compute(inpSdr, false);
 
-                // Reconstruct the permanence values for the active columns.
+                // Reconstruct permanence values for these active columns.
                 Dictionary<int, double> reconstructedPermanence = sp.Reconstruct(actCols);
 
-                // Define the maximum number of inputs (Same size of encoded Inputs) to consider.
+                // Determine threshold based on active column count for reconstruction
+                int activeCount;
+                if (actCols is int[] colIndices && colIndices.Length > 0 && colIndices.Max() > 1)
+                {
+                    // actCols is a list of active column indices
+                    activeCount = colIndices.Length;
+                }
+                else
+                {
+                    // actCols is a full-length SDR vector (or contains only 0/1 values)
+                    // Count the number of active columns (ones in the vector)
+                    if (actCols is int[] sdrVector)
+                        activeCount = sdrVector.Count(val => val == 1);
+                    else
+                        activeCount = 0;
+                }
+                double ThresholdValue = (activeCount > 0) ? activeCount * 0.5 : double.MaxValue;
+
+                // Prepare a dictionary of permanence for all input bits (fill missing with 0.0)
                 int maxInput = inpSdr.Length;
-
-                // Initialize a dictionary to hold all permanence values, including those not reconstructed becuase of Inactive columns.
                 Dictionary<int, double> allPermanenceDictionary = new Dictionary<int, double>();
-
-                // Populate the all permanence dictionary with reconstructed permanence values.
                 foreach (var kvp in reconstructedPermanence)
                 {
-                    int inputIndex = kvp.Key;
-
-                    double probability = kvp.Value;
-
-                    allPermanenceDictionary[inputIndex] = probability;
-
+                    allPermanenceDictionary[kvp.Key] = kvp.Value;
                 }
-                // Ensure that all input indices up to the maximum are represented in the dictionary, even if their permanence is 0.
                 for (int inputIndex = 0; inputIndex < maxInput; inputIndex++)
                 {
-
-                    if (!reconstructedPermanence.ContainsKey(inputIndex))
+                    if (!allPermanenceDictionary.ContainsKey(inputIndex))
                     {
-
                         allPermanenceDictionary[inputIndex] = 0.0;
                     }
                 }
-                // Sort the dictionary by keys
-                var sortedAllPermanenceDictionary = allPermanenceDictionary.OrderBy(kvp => kvp.Key);
+                // Sort permanences by input index and convert to list
+                var permanenceValuesList = allPermanenceDictionary.OrderBy(kvp => kvp.Key)
+                                                                  .Select(kvp => kvp.Value).ToList();
 
-                // Convert the sorted dictionary of all permanences to a list
-                List<double> permanenceValuesList = sortedAllPermanenceDictionary.Select(kvp => kvp.Value).ToList();
-
-                heatmapData.Add(permanenceValuesList);
-
-                // Output debug information showing the input value and its corresponding SDR as a string.
-                Debug.WriteLine($"Input: {input} SDR: {Helpers.StringifyVector(actCols)}");
-
-                // Define a threshold value for normalizing permanences, this value provides best Reconstructed Input
-                var ThresholdValue = 8.3;
-
-                // Normalize permanences (0 and 1) based on the threshold value and convert them to a list of integers.
+                // Threshold permanences to get reconstructed input SDR (0/1 vector)
                 List<int> normalizePermanenceList = Helpers.ThresholdingProbabilities(permanenceValuesList, ThresholdValue);
-
-                // Add the normalized permanences to the list of all normalized permanences.
                 normalizedPermanence.Add(normalizePermanenceList.ToArray());
-
-                // Add the encoded bits to the list of all original encoded Inputs.
                 encodedInputs.Add(inpSdr);
 
-                //Calling JaccardSimilarityofBinaryArrays function to measure the similarities
-                var similarity = MathHelpers.JaccardSimilarityofBinaryArrays(inpSdr, normalizePermanenceList.ToArray());
-                double[] similarityArray = new double[] { similarity };
-                // Add the Similarity Arrays to the list.
-                similarityList.Add(similarityArray);
+                // Compute Jaccard similarity between original input SDR and reconstructed SDR
+                double similarity = MathHelpers.JaccardSimilarityofBinaryArrays(inpSdr, normalizePermanenceList.ToArray());
+                similarityList.Add(new double[] { similarity });
+
+                // ... (code continues to the next input and eventually plotting heatmaps and similarity) ...
+
 
             }
             // Generate 1D heatmaps using the heatmap data and the normalized permanences To plot Heatmap, Encoded Inputs and Normalize Image combined.
