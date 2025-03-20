@@ -34,9 +34,9 @@ class Program
         }
 
         Console.WriteLine("Initializing Classifiers...");
-        // Replace the classifier initialization:
         var htmClassifier = new HtmImageClassifier();
-        var knnClassifier = new KnnImageClassifier(); // Fixed instantiation
+        var knnClassifier = new KnnImageClassifier();
+
         TrainClassifier(htmClassifier, sdrFolder, isHtm: true);
         TrainClassifier(knnClassifier, sdrFolder, isHtm: false);
 
@@ -57,7 +57,7 @@ class Program
         Console.WriteLine($"Training Classifier: {classifier.GetType().Name}");
 
         var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt").OrderBy(x => x).ToList();
-        int trainingCycles = isHtm ? 20 : 1;  // Train HTM multiple times, KNN only once
+        int trainingCycles = isHtm ? 20 : 1;
 
         for (int cycle = 0; cycle < trainingCycles; cycle++)
         {
@@ -68,7 +68,7 @@ class Program
 
                 classifier.Learn(sdr, new Cell[sdr.Length]);
 
-                if (cycle == 0)  // Log training only once
+                if (cycle == 0)
                     Console.WriteLine($"Trained on {fileName} (SDR length {sdr.Length})");
             }
 
@@ -122,7 +122,7 @@ class Program
     private static double ComputeHybridSimilarity(int[] sdr1, int[] sdr2)
     {
         if (sdr1.Length != sdr2.Length)
-            throw new ArgumentException("SDRs must be same length");
+            throw new ArgumentException("SDRs must be the same length");
 
         double jaccardSim = MathHelpers.JaccardSimilarityofBinaryArrays(sdr1, sdr2);
         double hammingSim = ComputeHammingSimilarity(sdr1, sdr2);
@@ -133,7 +133,7 @@ class Program
     private static double ComputeHammingSimilarity(int[] sdr1, int[] sdr2)
     {
         if (sdr1.Length != sdr2.Length)
-            throw new ArgumentException("SDRs must be same length");
+            throw new ArgumentException("SDRs must be the same length");
 
         int matchingBits = sdr1.Zip(sdr2, (a, b) => a == b ? 1 : 0).Sum();
         return 100.0 * matchingBits / sdr1.Length;
