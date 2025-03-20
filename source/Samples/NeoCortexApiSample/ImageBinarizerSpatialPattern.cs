@@ -1,262 +1,141 @@
-﻿using NeoCortex;
-using NeoCortexApi.Entities;
-using NeoCortexApi.Utility;
-using NeoCortexApi;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using OpenCvSharp;
+using System.Drawing;
+using NeoCortexApi;
+using NeoCortexApi.Entities;
 
 namespace NeoCortexApiSample
 {
-    internal class ImageBinarizerSpatialPattern
+    public class ImageBinarizerSpatialPattern
     {
-        public string inputPrefix { get; private set; } = "input_";
+        private string trainingFolder;
+        private SpatialPooler spatialPooler;
+        private Connections connections;
+        private const int ImageSize = 28;
+
+        public ImageBinarizerSpatialPattern(string trainingFolder)
+        {
+            if (string.IsNullOrEmpty(trainingFolder) || !Directory.Exists(trainingFolder))
+                throw new ArgumentException("Invalid training folder path.");
+
+            this.trainingFolder = trainingFolder;
+
+            connections = new Connections(new HtmConfig
+            {
+                ColumnDimensions = new int[] { ImageSize, ImageSize },
+                InputDimensions = new int[] { ImageSize, ImageSize },
+                NumInputs = ImageSize * ImageSize,
+                PotentialRadius = ImageSize,
+                NumActiveColumnsPerInhArea = 30,
+                SynPermInactiveDec = 0.005,
+                SynPermActiveInc = 0.04,
+                SynPermConnected = 0.2,
+                PotentialPct = 0.85
+            });
+
+            spatialPooler = new SpatialPooler();
+            spatialPooler.Init(connections);
+        }
 
         public void Run()
-<<<<<<< HEAD
-=======
-
->>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
-        {   //EXPERIMENT OF IMAGE BINARIZATION
-            Console.WriteLine($" Starting Experiment: {nameof(ImageBinarizerSpatialPattern)}");
-            double minOctOverlapCycles = 1.0;
-            double maxBoost = 5.0;
-            int numColumns = 32 * 32;
-            int imageSize = 28;
-            var colDims = new int[] { 32, 32 };
-
-            HtmConfig cfg = new HtmConfig(new int[] { imageSize, imageSize }, new int[] { numColumns })
-            {
-                CellsPerColumn = 10,
-                InputDimensions = new int[] { imageSize, imageSize },
-                NumInputs = imageSize * imageSize,
-                ColumnDimensions = colDims,
-                MaxBoost = maxBoost,
-                DutyCyclePeriod = 100,
-                MinPctOverlapDutyCycles = minOctOverlapCycles,
-                GlobalInhibition = false,
-                NumActiveColumnsPerInhArea = 0.03 * numColumns,
-                PotentialRadius = (int)(0.2 * imageSize * imageSize),
-                LocalAreaDensity = -1,
-                ActivationThreshold = 8,
-                MaxSynapsesPerSegment = (int)(0.015 * numColumns),
-                Random = new ThreadSafeRandom(42),
-                StimulusThreshold = 8,
-            };
-            //RUNEXPERIMENT
-            var sp = RunExperiment(cfg);
-            RunRestructuringExperiment(sp);
-        }
-
-        private string AdaptiveBinarizeImage(string imagePath, int imageSize, string outputName)
         {
-            Mat image = Cv2.ImRead(imagePath, ImreadModes.Grayscale);
-            Cv2.Resize(image, image, new OpenCvSharp.Size(imageSize, imageSize));
-
-            Mat binaryImage = new Mat();
-            Cv2.AdaptiveThreshold(image, binaryImage, 255, AdaptiveThresholdTypes.GaussianC, ThresholdTypes.Binary, 11, 2);
-
-            string outputFolderCsv = Path.Combine(Environment.CurrentDirectory, "BinarizedImages");
-            string outputFolderPng = Path.Combine(Environment.CurrentDirectory, "BinarizedImages_PNG");
-            Directory.CreateDirectory(outputFolderCsv);
-            Directory.CreateDirectory(outputFolderPng);
-
-            string outputCsvFile = Path.Combine(outputFolderCsv, $"{outputName}.csv");
-            string outputPngFile = Path.Combine(outputFolderPng, $"{outputName}.png");
-
-            // Save as CSV (Numbers)
-            using (StreamWriter writer = new StreamWriter(outputCsvFile))
+            var images = Directory.GetFiles(trainingFolder, "*.png");
+            if (images.Length == 0)
             {
-                var indexer = binaryImage.GetGenericIndexer<byte>();
-                for (int i = 0; i < binaryImage.Rows; i++)
-                {
-                    List<string> rowValues = new List<string>();
-                    for (int j = 0; j < binaryImage.Cols; j++)
-                    {
-                        rowValues.Add(indexer[i, j] > 0 ? "1" : "0");
-                    }
-                    writer.WriteLine(string.Join(",", rowValues));
-                }
-            }
-<<<<<<< HEAD
-=======
-
-
-            // Save as PNG (Image)
-            Cv2.ImWrite(outputPngFile, binaryImage);
-
-            Console.WriteLine($" Binarized Image Saved (CSV): {outputCsvFile}");
-            Console.WriteLine($" Binarized Image Saved (PNG): {outputPngFile}");
-
-            return outputCsvFile;
->>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
-            //SAVED BINARIZED IMAGE AS OUTPUT 
-            Console.WriteLine($" Binarized Image Saved: {outputFile}");
-            return outputFile;
-        }
-        //SPATIAL POOLER EXPERIMENT
-        private SpatialPooler RunExperiment(HtmConfig cfg)
-        {
-            Console.WriteLine("?? Running Experiment...");
-            var mem = new Connections(cfg);
-            bool isInStableState = false;
-            int numColumns = 32 * 32;
-<<<<<<< HEAD
-
-            // PATH SPECIFICATION STEPS
-=======
->>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
-            string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
-            var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
-
-
-<<<<<<< HEAD
-            //TRAINING FOLDER
-            Console.WriteLine($" Looking for images in: {trainingFolder}");
-            var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
-=======
->>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
-            if (trainingImages.Length == 0)
-            {
-                //IF IMAGES NOT FOUND
-                Console.WriteLine(" No images found in the 'Sample' folder.");
-                return null;
-            }
-<<<<<<< HEAD
-=======
-
-            string sdrFolder = Path.Combine(Environment.CurrentDirectory, "SDR_Values");
-            Directory.CreateDirectory(sdrFolder);
-
-            //TRAINING FOLDER
-            Console.WriteLine($" Looking for images in: {trainingFolder}");
-           
->>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
-            //IF IMAGES FOUND
-            Console.WriteLine($" Found {trainingImages.Length} images in 'Sample' folder.");
-            //TEST IMAGE
-            string testName = "test_image";
-
-            HomeostaticPlasticityController hpa = new HomeostaticPlasticityController(mem, trainingImages.Length * 50,
-                (isStable, numPatterns, actColAvg, seenInputs) =>
-                {
-                    if (isStable)
-                    {
-                        Console.WriteLine($"?? STABLE: Patterns={numPatterns}, Inputs={seenInputs}");
-                    }
-                },
-                requiredSimilarityThreshold: 0.975
-            );
-
-            SpatialPooler sp = new SpatialPooler(hpa);
-            sp.Init(mem, new DistributedMemory() { ColumnDictionary = new InMemoryDistributedDictionary<int, NeoCortexApi.Entities.Column>(1) });
-
-            int[] activeArray = new int[numColumns];
-            int maxCycles = 5, currentCycle = 0;
-
-            while (!isInStableState && currentCycle < maxCycles)
-            {
-                foreach (var image in trainingImages)
-                {
-                    string inputBinaryImageFile = AdaptiveBinarizeImage(image, 28, Path.GetFileNameWithoutExtension(image));
-
-                    int[] inputVector = ReadCsvIntegersSafe(inputBinaryImageFile);
-
-                    sp.compute(inputVector, activeArray, true);
-                    var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
-
-                    string sdrFile = Path.Combine(sdrFolder, $"SDR_{Path.GetFileNameWithoutExtension(image)}.csv");
-                    File.WriteAllLines(sdrFile, activeCols.Select(x => x.ToString()));
-
-                    Console.WriteLine($"✅ SDR Values Saved: {sdrFile}");
-                    Console.WriteLine($"?? SDR Output: {string.Join(",", activeCols)}");
-                }
-                currentCycle++;
-            }
-
-            return sp;
-        }
-
-<<<<<<< HEAD
-        //
-        //RECONSTRUCTION BEGINS(SPATIAL POOLER)
-        private void RunRestructuringExperiment(SpatialPooler sp)
-        {
-            
-            Console.WriteLine(" Running Restructuring Experiment...");
-            string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
-            var trainingImages = Directory.GetFiles(trainingFolder, "*.png");
-=======
-        //RECONSTRUCTION BEGINS(SPATIAL POOLER)
-        private void RunRestructuringExperiment(SpatialPooler sp)
-        {
-
-            Console.WriteLine("?? Running Restructuring Experiment...");
-            string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
-            var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
-
-
->>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
-            if (trainingImages.Length == 0)
-            {
-                Console.WriteLine("?? No images found for restructuring.");
+                Console.WriteLine("No images found in the training folder.");
                 return;
             }
-<<<<<<< HEAD
-            //PUTTING IMAGE SIZE AS REQUIRED
-=======
 
->>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
-            int imgSize = 28;
-            int[] activeArray = new int[32 * 32];
+            string sdrOutputFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SDR_Values");
+            Directory.CreateDirectory(sdrOutputFolder);
 
-            foreach (var image in trainingImages)
+            foreach (var imagePath in images)
             {
-                Console.WriteLine($"?? Processing Image: {image}");
-                string inputBinaryImageFile = AdaptiveBinarizeImage(image, imgSize, Path.GetFileNameWithoutExtension(image));
+                string imageName = Path.GetFileNameWithoutExtension(imagePath);
+                int[] binarizedPixels = BinarizeImage(imagePath, sdrOutputFolder, imageName);
 
-                int[] inputVector = ReadCsvIntegersSafe(inputBinaryImageFile);
+                if (binarizedPixels == null || binarizedPixels.Length != ImageSize * ImageSize)
+                {
+                    Console.WriteLine($"Error: {imageName} SDR incorrect size. Expected {ImageSize * ImageSize}.");
+                    continue;
+                }
 
-                sp.compute(inputVector, activeArray, true);
-                var activeCols = ArrayUtils.IndexWhere(activeArray, (el) => el == 1);
-<<<<<<< HEAD
-=======
+                int[] activeColumns = new int[connections.HtmConfig.NumColumns];
+                spatialPooler.compute(binarizedPixels, activeColumns, true);
 
+                File.WriteAllText(Path.Combine(sdrOutputFolder, $"{imageName}.txt"), string.Join(",", activeColumns));
+                Console.WriteLine($"Processed SDR for {imageName}. Active bits: {activeColumns.Count(bit => bit == 1)}");
             }
         }
 
-        private int[] ReadCsvIntegersSafe(string filePath)
+        private int[] BinarizeImage(string inputImagePath, string outputFolder, string imageName)
         {
+            if (!File.Exists(inputImagePath))
+            {
+                Console.WriteLine($"Error: Image not found - {inputImagePath}");
+                return null;
+            }
+
+            string outputImagePath = Path.Combine(outputFolder, $"{imageName}_binarized.png");
+
             try
             {
-                List<int> intList = new List<int>();
-
-                using (var reader = new StreamReader(filePath))
+                using (Bitmap originalImage = new Bitmap(inputImagePath))
                 {
-                    while (!reader.EndOfStream)
+                    int newWidth = ImageSize;
+                    int newHeight = ImageSize;
+
+                    using (Bitmap resizedImage = new Bitmap(originalImage, new Size(newWidth, newHeight)))
+                    using (Bitmap binarizedImage = new Bitmap(newWidth, newHeight))
                     {
-                        string line = reader.ReadLine();
-                        if (!string.IsNullOrWhiteSpace(line))
+                        for (int x = 0; x < newWidth; x++)
                         {
-                            intList.AddRange(line.Split(',')
-                                .Where(s => int.TryParse(s, out _))
-                                .Select(int.Parse));
+                            for (int y = 0; y < newHeight; y++)
+                            {
+                                Color pixelColor = resizedImage.GetPixel(x, y);
+                                int grayscale = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
+                                Color binaryColor = (grayscale < 128) ? Color.Black : Color.White;
+                                binarizedImage.SetPixel(x, y, binaryColor);
+                            }
                         }
+
+                        binarizedImage.Save(outputImagePath, System.Drawing.Imaging.ImageFormat.Png);
                     }
                 }
 
-                return intList.ToArray();
+                return ReadBinarizedImage(outputImagePath);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error reading CSV file '{filePath}': {ex.Message}");
-                return new int[0];  // Return an empty array to avoid crashes
->>>>>>> 578a6101a446a7ccad67b4f5976fbeb70c4143d0
-                //SDR OUTPUT FOR IMAGES
-                Console.WriteLine($"📌 SDR Output for {imageName}: {string.Join(",", activeCols)}");
+                Console.WriteLine($"Error during binarization: {ex.Message}");
+                return null;
+            }
+        }
+
+        private int[] ReadBinarizedImage(string imagePath)
+        {
+            try
+            {
+                using (Bitmap bmp = new Bitmap(imagePath))
+                {
+                    int[] binaryPixels = new int[ImageSize * ImageSize];
+                    for (int y = 0; y < bmp.Height; y++)
+                    {
+                        for (int x = 0; x < bmp.Width; x++)
+                        {
+                            Color pixel = bmp.GetPixel(x, y);
+                            int bit = pixel.R < 128 ? 1 : 0;
+                            binaryPixels[y * ImageSize + x] = bit;
+                        }
+                    }
+                    return binaryPixels;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading binarized image: {ex.Message}");
+                return null;
             }
         }
     }

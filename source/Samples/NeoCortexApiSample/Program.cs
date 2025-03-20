@@ -1,139 +1,151 @@
-﻿using NeoCortexApi;
-using NeoCortexApi.Encoders;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System;
+using System.IO;
 using System.Linq;
-using static NeoCortexApiSample.MultiSequenceLearning;
+using NeoCortexApi.Classifiers;
+using NeoCortexApi.Entities;
+using NeoCortexApi.Utility;
 
 namespace NeoCortexApiSample
 {
     class Program
     {
-        /// <summary>
-        /// This sample shows a typical experiment code for SP and TM.
-        /// We must start this code in debugger to follow the trace.
-        /// and TM.
-        /// </summary>
-        /// <param name="args"></param>
         static void Main(string[] args)
         {
-            
-            // Starts experiment that demonstrates how to learn spatial patterns.
-            //SpatialPatternLearning experiment = new SpatialPatternLearning();
-            //experiment.Run();
+            Console.WriteLine("Starting Image Processing Pipeline...");
 
-            // Starts experiment For the Image Inputs how to learn spatial patterns.
-            ImageBinarizerSpatialPattern experiment = new ImageBinarizerSpatialPattern();
-            experiment.Run();
+            string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
+            string sdrFolder = Path.Combine(Environment.CurrentDirectory, "SDR_Values");
+            string outputFolder = Path.Combine(Environment.CurrentDirectory, "ReconstructedImages");
+            string reconstructedSdrFolder = Path.Combine(Environment.CurrentDirectory, "Reconstructed_SDRs");
 
+            EnsureDirectoryExists(trainingFolder);
+            EnsureDirectoryExists(sdrFolder);
+            EnsureDirectoryExists(outputFolder);
+            EnsureDirectoryExists(reconstructedSdrFolder);
 
-            
-            //Starts experiment that demonstrates how to learn spatial patterns.
-            //SequenceLearning experiment = new SequenceLearning();
-            //experiment.Run();
+            Console.WriteLine("Running Image Binarization...");
 
-            //GridCellSamples gridCells = new GridCellSamples();
-            //gridCells.Run();
+            // Instantiate ImageBinarizerSpatialPattern with the trainingFolder
+            var binarizer = new ImageBinarizerSpatialPattern(trainingFolder);
+            binarizer.Run();  // Run the binarization process
 
-            // RunMultiSimpleSequenceLearningExperiment();
+            Console.WriteLine("Image Binarization Completed.");
 
-
-            //RunMultiSequenceLearningExperiment();
-        }
-
-        private static void RunMultiSimpleSequenceLearningExperiment()
-        {
-            Dictionary<string, List<double>> sequences = new Dictionary<string, List<double>>();
-
-            sequences.Add("S1", new List<double>(new double[] { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, }));
-            sequences.Add("S2", new List<double>(new double[] { 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0 }));
-
-         
-            // Prototype for building the prediction engine.
-            MultiSequenceLearning experiment = new MultiSequenceLearning();
-            var predictor = experiment.Run(sequences);
-        }
-
-
-        /// <summary>
-        /// This example demonstrates how to learn two sequences and how to use the prediction mechanism.
-        /// First,two sequences are learned.
-        /// Second, three short sequences with three elements each are created und used for prediction. The predictor used by experiment privides to the HTM every element of every predicting sequence.
-        /// The predictor tries to predict the next element.
-        /// </summary>
-        private static void RunMultiSequenceLearningExperiment()
-        {
-            Dictionary<string, List<double>> sequences = new Dictionary<string, List<double>>();
-
-            //sequences.Add("S1", new List<double>(new double[] { 0.0, 1.0, 0.0, 2.0, 3.0, 4.0, 5.0, 6.0, 5.0, 4.0, 3.0, 7.0, 1.0, 9.0, 12.0, 11.0, 12.0, 13.0, 14.0, 11.0, 12.0, 14.0, 5.0, 7.0, 6.0, 9.0, 3.0, 4.0, 3.0, 4.0, 3.0, 4.0 }));
-            //sequences.Add("S2", new List<double>(new double[] { 0.8, 2.0, 0.0, 3.0, 3.0, 4.0, 5.0, 6.0, 5.0, 7.0, 2.0, 7.0, 1.0, 9.0, 11.0, 11.0, 10.0, 13.0, 14.0, 11.0, 7.0, 6.0, 5.0, 7.0, 6.0, 5.0, 3.0, 2.0, 3.0, 4.0, 3.0, 4.0 }));
-
-            // sequences.Add("S1", new List<double>(new double[] { 0.0, 1.0, 2.0, 3.0, 4.0, 2.0, 5.0, }));
-            // sequences.Add("S2", new List<double>(new double[] { 8.0, 1.0, 2.0, 9.0, 10.0, 7.0, 11.00 }));
-
-            //            string poem = @"First Citizen:
-            //Before we proceed any further, hear me speak.
-            //All:
-            //Speak, speak.";
-
-            //            List<double> poemSeq = new List<double>();
-            //            for each (var chr in poem)
-            //            {
-            //                poemSeq.Add((double)chr);
-            //            }
-
-            //            sequences.Add("Poem", poemSeq);
-
-            
-            // This is the prototype for building the prediction engine.
-            MultiSequenceLearning experiment = new MultiSequenceLearning();
-            var predictor = experiment.Run(sequences);
-
-            
-            // These list are used to see how the prediction works.
-            // Predictor is traversing the list element to element. 
-            // By providing more elements to the prediction, the predictor delivers more precise result.
-            var list1 = new double[] { 1.0, 2.0, 3.0, 4.0, 2.0, 5.0 };
-            var list2 = new double[] { 2.0, 3.0, 4.0 };
-            var list3 = new double[] { 8.0, 1.0, 2.0 };
-
-            predictor.Reset();
-
-            PredictNextElement(predictor, list1);
-
-            predictor.Reset();
-            PredictNextElement(predictor, list2);
-
-            predictor.Reset();
-            PredictNextElement(predictor, list3);
-        }
-
-        private static void PredictNextElement(Predictor predictor, double[] list)
-        {
-            Debug.WriteLine("--------------------------------");
-
-            foreach (var item in list)
+            var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt");
+            if (sdrFiles.Length == 0)
             {
-                var res = predictor.Predict(item);
-
-                if (res.Count > 0)
-                {
-                    foreach (var pred in res)
-                    {
-                        Debug.WriteLine($"{pred.PredictedInput} - {pred.Similarity}");
-                    }
-
-                    var tokens = res.First().PredictedInput.Split('_');
-                    var tokens2 = res.First().PredictedInput.Split('-');
-                    //printing next predicted value.
-                    Debug.WriteLine($"Predicted Sequence: {tokens[0]}, predicted next element {tokens2.Last()}");
-                }
-                else
-                    Debug.WriteLine("Nothing predicted :(");
+                Console.WriteLine($"Error: No SDR files found in '{sdrFolder}'. Exiting...");
+                return;
             }
 
-            Debug.WriteLine("---------------------------------");
+            Console.WriteLine("Initializing Classifiers...");
+            var htmClassifier = new HtmImageClassifier();
+            var knnClassifier = new KnnImageClassifier();
+
+            TrainClassifier(htmClassifier, sdrFolder, true);
+            TrainClassifier(knnClassifier, sdrFolder, false);
+
+            Console.WriteLine("Running Image Reconstruction via Classifiers...");
+            var htmReconstructor = new HtmImageReconstructor();
+            htmReconstructor.RunReconstruction(sdrFolder, outputFolder, reconstructedSdrFolder, htmClassifier);
+            var knnReconstructor = new KnnImageReconstructor();
+            knnReconstructor.RunReconstruction(sdrFolder, outputFolder, reconstructedSdrFolder, knnClassifier);
+
+            Console.WriteLine("Computing Similarity between Original and Reconstructed SDRs...");
+            CompareOriginalAndReconstructedSDRs(sdrFolder, reconstructedSdrFolder);
+
+            Console.WriteLine("Processing Pipeline Completed.");
+        }
+
+        private static void TrainClassifier(IClassifier<int[], string> classifier, string sdrFolder, bool isHtm)
+        {
+            Console.WriteLine($"Training Classifier: {classifier.GetType().Name}");
+            var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt").OrderBy(x => x).ToList();
+            int trainingCycles = isHtm ? 20 : 1;
+
+            for (int cycle = 0; cycle < trainingCycles; cycle++)
+            {
+                foreach (var sdrFile in sdrFiles)
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(sdrFile);
+                    int[] sdr = ReadSdrFromFile(sdrFile);
+                    classifier.Learn(sdr, new Cell[sdr.Length]);
+                    if (cycle == 0)
+                        Console.WriteLine($"Trained on {fileName} (SDR length {sdr.Length})");
+                }
+                if (isHtm)
+                {
+                    Console.WriteLine($"HTM Training Cycle {cycle + 1}/{trainingCycles} completed.");
+                }
+            }
+            Console.WriteLine("Training Completed.");
+        }
+
+        private static void CompareOriginalAndReconstructedSDRs(string sdrFolder, string reconstructedSdrFolder)
+        {
+            var originalFiles = Directory.GetFiles(sdrFolder, "*.txt").OrderBy(x => x).ToList();
+            foreach (var origFile in originalFiles)
+            {
+                string name = Path.GetFileNameWithoutExtension(origFile);
+                string htmReconFile = Path.Combine(reconstructedSdrFolder, $"{name}_HTM_Reconstructed.txt");
+                string knnReconFile = Path.Combine(reconstructedSdrFolder, $"{name}_KNN_Reconstructed.txt");
+
+                if (!File.Exists(htmReconFile) || !File.Exists(knnReconFile))
+                {
+                    Console.WriteLine($"Missing reconstructed SDRs for {name}. Skipping comparison.");
+                    continue;
+                }
+
+                int[] origSdr = ReadSdrFromFile(origFile);
+                int[] htmReconSdr = ReadSdrFromFile(htmReconFile);
+                int[] knnReconSdr = ReadSdrFromFile(knnReconFile);
+
+                double htmSim = ComputeHybridSimilarity(origSdr, htmReconSdr) * 100;
+                double knnSim = ComputeHybridSimilarity(origSdr, knnReconSdr) * 100;
+
+                Console.WriteLine($"Similarity Results for {name}:");
+                Console.WriteLine($" HTM Similarity: {htmSim:0.00}%");
+                Console.WriteLine($" KNN Similarity: {knnSim:0.00}%");
+            }
+        }
+
+        private static int[] ReadSdrFromFile(string path)
+        {
+            return File.ReadAllText(path).Trim()
+                       .Split(',')
+                       .Where(str => str != "")
+                       .Select(str => int.TryParse(str, out int bit) ? bit : 0)
+                       .ToArray();
+        }
+
+        private static double ComputeHybridSimilarity(int[] sdr1, int[] sdr2)
+        {
+            if (sdr1.Length != sdr2.Length)
+                throw new ArgumentException("SDRs must be the same length");
+
+            double jaccardSim = MathHelpers.JaccardSimilarityofBinaryArrays(sdr1, sdr2);
+            double dot = sdr1.Zip(sdr2, (a, b) => a * b).Sum();
+            double magA = Math.Sqrt(sdr1.Sum(a => a * a));
+            double magB = Math.Sqrt(sdr2.Sum(b => b * b));
+            double cosSim = (magA == 0 || magB == 0) ? 0.0 : dot / (magA * magB);
+            double hammingSim = ComputeHammingSimilarity(sdr1, sdr2);
+
+            return (jaccardSim + cosSim + hammingSim) / 3.0;
+        }
+
+        private static double ComputeHammingSimilarity(int[] sdr1, int[] sdr2)
+        {
+            if (sdr1.Length != sdr2.Length)
+                throw new ArgumentException("SDRs must be the same length");
+
+            int matchingBits = sdr1.Zip(sdr2, (a, b) => a == b ? 1 : 0).Sum();
+            return (double)matchingBits / sdr1.Length;
+        }
+
+        private static void EnsureDirectoryExists(string path)
+        {
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
         }
     }
 }
