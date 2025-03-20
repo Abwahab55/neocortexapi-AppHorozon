@@ -3,7 +3,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using NeoCortexApi.Classifiers;
-using NeoCortexApiSample;
 
 namespace NeoCortexApiSample
 {
@@ -28,13 +27,10 @@ namespace NeoCortexApiSample
 
                 try
                 {
-                    // 🔥 **Fix: Read SDR correctly (comma-separated format)**
                     int[] originalSdr = File.ReadAllText(sdrFile).Trim()
-                                        .Replace("\n", "").Replace("\r", "") // Remove newlines
+                                        .Replace("\n", "").Replace("\r", "")
                                         .Split(',').Where(x => !string.IsNullOrWhiteSpace(x))
                                         .Select(int.Parse).ToArray();
-
-                    Console.WriteLine($"📥 [INPUT] Loaded SDR {name}: {string.Join(",", originalSdr.Take(20))}...");
 
                     var predictions = classifier.GetPredictedInputValues(originalSdr, howMany: 1);
                     int[] reconstructedSdr = predictions.Count > 0 ? predictions[0].PredictedInput : originalSdr;
@@ -54,12 +50,10 @@ namespace NeoCortexApiSample
                         }
                         bmp.Save(outImagePath);
                     }
-
-                    Console.WriteLine($"✅ [SUCCESS] Image saved: {outImagePath}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"❌ [ERROR] Reconstructing {name}: {ex.Message}");
+                    Console.WriteLine($"Error reconstructing {name}: {ex.Message}");
                 }
             }
         }
