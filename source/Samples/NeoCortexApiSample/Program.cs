@@ -14,8 +14,8 @@ namespace NeoCortexApiSample
         static void Main(string[] args)
         {
             Console.WriteLine("Starting Image Processing Pipeline...");
+            string trainingFolder = Path.Combine(Environment.CurrentDirectory, @"..\..\..\Sample");
 
-            string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
             string sdrFolder = Path.Combine(Environment.CurrentDirectory, "SDR_Values");
             string outputFolder = Path.Combine(Environment.CurrentDirectory, "ReconstructedImages");
             string reconstructedSdrFolder = Path.Combine(Environment.CurrentDirectory, "Reconstructed_SDRs");
