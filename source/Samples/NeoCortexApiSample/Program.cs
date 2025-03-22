@@ -29,8 +29,55 @@ class Program
         var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt");
         if (sdrFiles.Length == 0)
         {
+<<<<<<< Updated upstream
             Console.WriteLine($"Error: No SDR files found in '{sdrFolder}'. Exiting...");
             return;
+=======
+            Console.WriteLine("Starting Image Processing Pipeline...");
+
+            string trainingFolder = Path.Combine(Environment.CurrentDirectory, "Sample");
+            string sdrFolder = Path.Combine(Environment.CurrentDirectory, "SDR_Values");
+            string outputFolder = Path.Combine(Environment.CurrentDirectory, "ReconstructedImages");
+            string reconstructedSdrFolder = Path.Combine(Environment.CurrentDirectory, "Reconstructed_SDRs");
+
+            EnsureDirectoryExists(trainingFolder);
+            EnsureDirectoryExists(sdrFolder);
+            EnsureDirectoryExists(outputFolder);
+            EnsureDirectoryExists(reconstructedSdrFolder);
+
+            Console.WriteLine("Running Image Binarization...");
+
+            // Instantiate ImageBinarizerSpatialPattern with the TrainingFolder
+            var binarizer = new ImageBinarizerSpatialPattern(trainingFolder);
+            binarizer.Run();  // Run the binarization process
+
+            Console.WriteLine("Image Binarization Completed.");
+
+            var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt");
+            if (sdrFiles.Length == 0)
+            {
+                Console.WriteLine($"Error: No SDR files found in '{sdrFolder}'. Exiting...");
+                return;
+            }
+
+            Console.WriteLine("Initializing Classifiers...");
+            var htmClassifier = new HtmImageClassifier();
+            var knnClassifier = new KnnImageClassifier();
+
+            TrainClassifier(htmClassifier, sdrFolder, true);
+            TrainClassifier(knnClassifier, sdrFolder, false);
+
+            Console.WriteLine("Running Image Reconstruction via Classifiers...");
+            var htmReconstructor = new HtmImageReconstructor();
+            htmReconstructor.RunReconstruction(sdrFolder, outputFolder, reconstructedSdrFolder, htmClassifier);
+            var knnReconstructor = new KnnImageReconstructor();
+            knnReconstructor.RunReconstruction(sdrFolder, outputFolder, reconstructedSdrFolder, knnClassifier);
+
+            Console.WriteLine("Computing Similarity between Original and Reconstructed SDRs...");
+            CompareOriginalAndReconstructedSDRs(sdrFolder, reconstructedSdrFolder);
+
+            Console.WriteLine("Processing Pipeline Completed.");
+>>>>>>> Stashed changes
         }
 
         Console.WriteLine("Initializing Classifiers...");
@@ -104,9 +151,25 @@ class Program
             double htmSim = ComputeHybridSimilarity(origSdr, htmReconSdr);
             double knnSim = ComputeHybridSimilarity(origSdr, knnReconSdr);
 
+<<<<<<< Updated upstream
             Console.WriteLine($"Similarity Results for {name}:");
             Console.WriteLine($" HTM Similarity: {htmSim:0.00}%");
             Console.WriteLine($" KNN Similarity: {knnSim:0.00}%\n");
+=======
+        private static double ComputeHammingSimilarity(int[] sdr1, int[] sdr2)
+        {
+            if (sdr1.Length != sdr2.Length)
+                throw new ArgumentException("SDRs must be the same length");
+
+            int matchingBits = sdr1.Zip(sdr2, (a, b) => a == b ? 1 : 0).Sum();
+            return (double)matchingBits / sdr1.Length;
+        }
+        //issue found & solved
+        private static void EnsureDirectoryExists(string path)
+        {
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+>>>>>>> Stashed changes
         }
     }
 
