@@ -89,7 +89,7 @@ namespace NeoCortexApiSample
             string outputFolder = Path.Combine(Environment.CurrentDirectory, "SimilarityPlots_Image_Inputs");
 
             EnsureDirectoryExists(outputFolder);
-
+            //file height and width needs to mention
             int width = 800;
             int height = 400;
             var bmp = new Bitmap(width, height);
