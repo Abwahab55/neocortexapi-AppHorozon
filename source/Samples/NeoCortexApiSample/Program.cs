@@ -31,7 +31,7 @@ namespace NeoCortexApiSample
             binarizer.Run();
 
             Console.WriteLine("Image Binarization Completed.");
-
+            //taking sdr values as .txt
             var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt");
             if (sdrFiles.Length == 0)
             {
@@ -118,10 +118,11 @@ namespace NeoCortexApiSample
 
                 int knnBarHeight = (int)((knnSim / maxSim) * (height - 50));
                 g.FillRectangle(Brushes.Green, x + barWidth, baseLineY - knnBarHeight, barWidth, knnBarHeight);
-
+                //for name
                 g.DrawString(name, new Font("Arial", 8), Brushes.Black, new PointF(x, baseLineY + 5));
-
+                //htm values
                 g.DrawString("HTM", new Font("Arial", 10), Brushes.Blue, new PointF(x - 50, baseLineY - htmBarHeight - 15));
+               //knn values
                 g.DrawString("KNN", new Font("Arial", 10), Brushes.Green, new PointF(x + barWidth + 10, baseLineY - knnBarHeight - 15));
 
                 x += 2 * barWidth + padding;
