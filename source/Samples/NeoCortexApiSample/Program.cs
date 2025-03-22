@@ -197,7 +197,7 @@ namespace NeoCortexApiSample
             int matchingBits = sdr1.Zip(sdr2, (a, b) => a == b ? 1 : 0).Sum();
             return (double)matchingBits / sdr1.Length;
         }
-
+        //issue found and solved
         private static void EnsureDirectoryExists(string path)
         {
             if (!Directory.Exists(path))
