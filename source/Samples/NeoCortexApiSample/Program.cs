@@ -129,6 +129,7 @@ namespace NeoCortexApiSample
             }
 
             string outputPath = Path.Combine(outputFolder, "SimilarityComparison.png");
+            //out saved
             bmp.Save(outputPath);
             Console.WriteLine($"Similarity graph saved to {outputPath}.");
         }
