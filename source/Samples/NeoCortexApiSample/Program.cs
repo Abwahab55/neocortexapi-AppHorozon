@@ -31,7 +31,7 @@ namespace NeoCortexApiSample
             binarizer.Run();
 
             Console.WriteLine("Image Binarization Completed.");
-
+            //taking sdr values as .txt
             var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt");
             if (sdrFiles.Length == 0)
             {
@@ -89,7 +89,7 @@ namespace NeoCortexApiSample
             string outputFolder = Path.Combine(Environment.CurrentDirectory, "SimilarityPlots_Image_Inputs");
 
             EnsureDirectoryExists(outputFolder);
-
+            //file height and width needs to mention
             int width = 800;
             int height = 400;
             var bmp = new Bitmap(width, height);
@@ -118,16 +118,18 @@ namespace NeoCortexApiSample
 
                 int knnBarHeight = (int)((knnSim / maxSim) * (height - 50));
                 g.FillRectangle(Brushes.Green, x + barWidth, baseLineY - knnBarHeight, barWidth, knnBarHeight);
-
+                //for name
                 g.DrawString(name, new Font("Arial", 8), Brushes.Black, new PointF(x, baseLineY + 5));
-
+                //htm values
                 g.DrawString("HTM", new Font("Arial", 10), Brushes.Blue, new PointF(x - 50, baseLineY - htmBarHeight - 15));
+               //knn values
                 g.DrawString("KNN", new Font("Arial", 10), Brushes.Green, new PointF(x + barWidth + 10, baseLineY - knnBarHeight - 15));
 
                 x += 2 * barWidth + padding;
             }
 
             string outputPath = Path.Combine(outputFolder, "SimilarityComparison.png");
+            //out saved
             bmp.Save(outputPath);
             Console.WriteLine($"Similarity graph saved to {outputPath}.");
         }
@@ -197,7 +199,7 @@ namespace NeoCortexApiSample
             int matchingBits = sdr1.Zip(sdr2, (a, b) => a == b ? 1 : 0).Sum();
             return (double)matchingBits / sdr1.Length;
         }
-
+        //issue found and solved
         private static void EnsureDirectoryExists(string path)
         {
             if (!Directory.Exists(path))

@@ -19,7 +19,7 @@ namespace NeoCortexApiSample
             imageHeight = height;
             _k = k;
         }
-
+        //reconstruction method for knn classifier
         public void RunReconstruction(string sdrFolder, string outputImageFolder,
                                       string reconstructedSdrFolder,
                                       IClassifier<int[], string> classifier)
