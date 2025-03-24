@@ -10,7 +10,7 @@ public class ArrayComparer : IEqualityComparer<int[]>
             return false;
         return x.SequenceEqual(y);
     }
-
+    //comparing values
     public int GetHashCode(int[] obj)
     {
         if (obj == null)

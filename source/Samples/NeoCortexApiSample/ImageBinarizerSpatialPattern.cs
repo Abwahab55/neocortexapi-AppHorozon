@@ -93,6 +93,7 @@ namespace NeoCortexApiSample
                         {
                             for (int y = 0; y < newHeight; y++)
                             {
+                                //image resized
                                 Color pixelColor = resizedImage.GetPixel(x, y);
                                 int grayscale = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
                                 Color binaryColor = (grayscale < 128) ? Color.Black : Color.White;
@@ -106,6 +107,7 @@ namespace NeoCortexApiSample
 
                 return ReadBinarizedImage(outputImagePath);
             }
+            //exception handle
             catch (Exception ex)
             {
                 Console.WriteLine($"Error during binarization: {ex.Message}");
@@ -132,6 +134,7 @@ namespace NeoCortexApiSample
                     return binaryPixels;
                 }
             }
+            //exception handle
             catch (Exception ex)
             {
                 Console.WriteLine($"Error reading binarized image: {ex.Message}");
