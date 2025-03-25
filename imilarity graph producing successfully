@@ -1,0 +1,121 @@
+[33mcommit 972b4c1507c9f8cf02dd0f5f2ac9c772be2b0da7[m
+Author: romana rashid <romana.rashid02@gmail.com>
+Date:   Fri Mar 21 03:55:49 2025 +0100
+
+    similarity graph producing successfully
+
+[1mdiff --git a/source/Samples/NeoCortexApiSample/Program.cs b/source/Samples/NeoCortexApiSample/Program.cs[m
+[1mindex 6b66a1d9..6b40eb7e 100644[m
+[1m--- a/source/Samples/NeoCortexApiSample/Program.cs[m
+[1m+++ b/source/Samples/NeoCortexApiSample/Program.cs[m
+[36m@@ -1,9 +1,11 @@[m
+ ﻿using System;[m
+ using System.IO;[m
+ using System.Linq;[m
+[32m+[m[32musing System.Drawing;[m
+ using NeoCortexApi.Classifiers;[m
+ using NeoCortexApi.Entities;[m
+ using NeoCortexApi.Utility;[m
+[32m+[m[32musing System.Collections.Generic;[m
+ [m
+ namespace NeoCortexApiSample[m
+ {[m
+[36m@@ -25,9 +27,8 @@[m [mnamespace NeoCortexApiSample[m
+ [m
+             Console.WriteLine("Running Image Binarization...");[m
+ [m
+[31m-            // Instantiate ImageBinarizerSpatialPattern with the trainingFolder[m
+             var binarizer = new ImageBinarizerSpatialPattern(trainingFolder);[m
+[31m-            binarizer.Run();  // Run the binarization process[m
+[32m+[m[32m            binarizer.Run();[m
+ [m
+             Console.WriteLine("Image Binarization Completed.");[m
+ [m
+[36m@@ -52,9 +53,11 @@[m [mnamespace NeoCortexApiSample[m
+             knnReconstructor.RunReconstruction(sdrFolder, outputFolder, reconstructedSdrFolder, knnClassifier);[m
+ [m
+             Console.WriteLine("Computing Similarity between Original and Reconstructed SDRs...");[m
+[31m-            CompareOriginalAndReconstructedSDRs(sdrFolder, reconstructedSdrFolder);[m
+[32m+[m[32m            var similarityResults = CompareOriginalAndReconstructedSDRs(sdrFolder, reconstructedSdrFolder);[m
+ [m
+             Console.WriteLine("Processing Pipeline Completed.");[m
+[32m+[m
+[32m+[m[32m            GenerateSimilarityGraph(similarityResults);[m
+         }[m
+ [m
+         private static void TrainClassifier(IClassifier<int[], string> classifier, string sdrFolder, bool isHtm)[m
+[36m@@ -81,9 +84,59 @@[m [mnamespace NeoCortexApiSample[m
+             Console.WriteLine("Training Completed.");[m
+         }[m
+ [m
+[31m-        private static void CompareOriginalAndReconstructedSDRs(string sdrFolder, string reconstructedSdrFolder)[m
+[32m+[m[32m        private static void GenerateSimilarityGraph(Dictionary<string, (double htmSim, double knnSim)> similarityResults)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            string outputFolder = Path.Combine(Environment.CurrentDirectory, "SimilarityPlots_Image_Inputs");[m
+[32m+[m
+[32m+[m[32m            EnsureDirectoryExists(outputFolder);[m
+[32m+[m
+[32m+[m[32m            int width = 800;[m
+[32m+[m[32m            int height = 400;[m
+[32m+[m[32m            var bmp = new Bitmap(width, height);[m
+[32m+[m[32m            var g = Graphics.FromImage(bmp);[m
+[32m+[m
+[32m+[m[32m            g.Clear(Color.White);[m
+[32m+[m[32m            var pen = new Pen(Color.Black);[m
+[32m+[m
+[32m+[m[32m            double maxHtmSim = similarityResults.Values.Max(r => r.htmSim);[m
+[32m+[m[32m            double maxKnnSim = similarityResults.Values.Max(r => r.knnSim);[m
+[32m+[m[32m            double maxSim = Math.Max(maxHtmSim, maxKnnSim);[m
+[32m+[m
+[32m+[m[32m            int barWidth = width / (2 * similarityResults.Count + 1);[m
+[32m+[m[32m            int padding = 10;[m
+[32m+[m[32m            int baseLineY = height - 50;[m
+[32m+[m
+[32m+[m[32m            int x = padding;[m
+[32m+[m[32m            foreach (var result in similarityResults)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                string name = result.Key;[m
+[32m+[m[32m                double htmSim = result.Value.htmSim;[m
+[32m+[m[32m                double knnSim = result.Value.knnSim;[m
+[32m+[m
+[32m+[m[32m                int htmBarHeight = (int)((htmSim / maxSim) * (height - 50));[m
+[32m+[m[32m                g.FillRectangle(Brushes.Blue, x, baseLineY - htmBarHeight, barWidth, htmBarHeight);[m
+[32m+[m
+[32m+[m[32m                int knnBarHeight = (int)((knnSim / maxSim) * (height - 50));[m
+[32m+[m[32m                g.FillRectangle(Brushes.Green, x + barWidth, baseLineY - knnBarHeight, barWidth, knnBarHeight);[m
+[32m+[m
+[32m+[m[32m                g.DrawString(name, new Font("Arial", 8), Brushes.Black, new PointF(x, baseLineY + 5));[m
+[32m+[m
+[32m+[m[32m                g.DrawString("HTM", new Font("Arial", 10), Brushes.Blue, new PointF(x - 50, baseLineY - htmBarHeight - 15));[m
+[32m+[m[32m                g.DrawString("KNN", new Font("Arial", 10), Brushes.Green, new PointF(x + barWidth + 10, baseLineY - knnBarHeight - 15));[m
+[32m+[m
+[32m+[m[32m                x += 2 * barWidth + padding;[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m            string outputPath = Path.Combine(outputFolder, "SimilarityComparison.png");[m
+[32m+[m[32m            bmp.Save(outputPath);[m
+[32m+[m[32m            Console.WriteLine($"Similarity graph saved to {outputPath}.");[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        private static Dictionary<string, (double htmSim, double knnSim)> CompareOriginalAndReconstructedSDRs(string sdrFolder, string reconstructedSdrFolder)[m
+         {[m
+             var originalFiles = Directory.GetFiles(sdrFolder, "*.txt").OrderBy(x => x).ToList();[m
+[32m+[m[32m            var similarityResults = new Dictionary<string, (double htmSim, double knnSim)>();[m
+[32m+[m
+             foreach (var origFile in originalFiles)[m
+             {[m
+                 string name = Path.GetFileNameWithoutExtension(origFile);[m
+[36m@@ -103,10 +156,13 @@[m [mnamespace NeoCortexApiSample[m
+                 double htmSim = ComputeHybridSimilarity(origSdr, htmReconSdr) * 100;[m
+                 double knnSim = ComputeHybridSimilarity(origSdr, knnReconSdr) * 100;[m
+ [m
+[32m+[m[32m                similarityResults[name] = (htmSim, knnSim);[m
+                 Console.WriteLine($"Similarity Results for {name}:");[m
+                 Console.WriteLine($" HTM Similarity: {htmSim:0.00}%");[m
+                 Console.WriteLine($" KNN Similarity: {knnSim:0.00}%");[m
+             }[m
+[32m+[m
+[32m+[m[32m            return similarityResults;[m
+         }[m
+ [m
+         private static int[] ReadSdrFromFile(string path)[m
