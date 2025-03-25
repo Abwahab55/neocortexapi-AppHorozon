@@ -117,8 +117,26 @@ namespace NeoCortexApiSample
                 var lines = File.ReadAllLines(binarizedTxtPath);
                 if (lines.Length != ImageSize)
                 {
-                    Console.WriteLine("Error: Binarized txt file incorrect dimensions.");
-                    return null;
+                    int newWidth = ImageSize;
+                    int newHeight = ImageSize;
+
+                    using (Bitmap resizedImage = new Bitmap(originalImage, new Size(newWidth, newHeight)))
+                    using (Bitmap binarizedImage = new Bitmap(newWidth, newHeight))
+                    {
+                        for (int x = 0; x < newWidth; x++)
+                        {
+                            for (int y = 0; y < newHeight; y++)
+                            {
+                                //image resized
+                                Color pixelColor = resizedImage.GetPixel(x, y);
+                                int grayscale = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
+                                Color binaryColor = (grayscale < 128) ? Color.Black : Color.White;
+                                binarizedImage.SetPixel(x, y, binaryColor);
+                            }
+                        }
+
+                        binarizedImage.Save(outputImagePath, System.Drawing.Imaging.ImageFormat.Png);
+                    }
                 }
 
                 int[] pixels = lines.SelectMany(line => line.Select(ch => ch == '1' ? 1 : 0)).ToArray();
@@ -128,6 +146,7 @@ namespace NeoCortexApiSample
 
                 return pixels;
             }
+            //exception handle
             catch (Exception ex)
             {
                 Console.WriteLine($"Error binarizing image {imageName}: {ex.Message}");
@@ -147,7 +166,14 @@ namespace NeoCortexApiSample
                     bmp.SetPixel(x, y, color);
                 }
             }
+
             bmp.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
+            //exception handle
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading binarized image: {ex.Message}");
+                return null;
+     
         }
     }
 }

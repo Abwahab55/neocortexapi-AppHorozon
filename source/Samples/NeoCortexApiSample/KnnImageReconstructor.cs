@@ -25,6 +25,7 @@ namespace NeoCortexApiSample
             _k = k; // number of nearest neighbors to use for reconstruction voting
         }
 
+
         /// <summary>
         /// Runs the reconstruction for all SDR files in sdrFolder using the k-NN classifier.
         /// Saves output images to outputImageFolder and output SDR files to reconstructedSdrFolder.
