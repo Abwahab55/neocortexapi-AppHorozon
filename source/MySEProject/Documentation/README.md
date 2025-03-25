@@ -11,3 +11,4 @@
 
 * [Methodology](#Methodology)
 # METHODOLGY
+The implementation of this project is focused on incorporating machine learning methods such as Hierarchical Temporal Memory (HTM) and K-Nearest Neighbors (KNN) for image classification and reconstruction. It can be performed using pre-defined algorithms.
