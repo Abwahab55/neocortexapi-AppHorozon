@@ -18,7 +18,7 @@ This process provides a simple but effective way to add missing data. These meth
  
 # Introduction:
  
-In this project, an experiment which is performed to makes us indulge with the knowledge of Sparse Distributed Representations (SDRs),classifiers and an integral component in the neocortexapi.The goal of this work is to create a classification-based way to rebuild pictures from SDR-encoded data that takes advantage of the best parts of HTM and KNN. This will create a new framework that strikes a good balance between how quickly the reconstruction is done and how well it looks. Image reconstruction has use in many important areas.
+In this project, an experiment which is performed to makes us indulge with the knowledge of Sparse Distributed Representations (SDRs),classifiers and an integral component in the neocortexapi.The goal of this work is to create a classification-based way to rebuild pictures from SDR-encoded data that takes advantage of the best parts of HTM and KNN. This will create a new framework that strikes a good balance between how quickly the reconstruction is done and how well it looks. Image reconstruction has use in many important areas.Image reconstruction improves object identification, feature classification, and pattern recognition under demanding situations.
 
 # METHODOLGY
 The implementation of this project is focused on incorporating machine learning methods such as Hierarchical Temporal Memory (HTM) and K-Nearest Neighbors (KNN) for image classification and reconstruction. It can be performed using pre-defined algorithms.
