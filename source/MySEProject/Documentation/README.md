@@ -14,7 +14,12 @@
 # Problem Statement: 
 
 This process provides a simple but effective way to add missing data. These methods, when used together, may improve reconstructing pictures from sparse representations while still maintaining computational feasibility. In this work, we investigate whether it is feasible to reconstruct pictures from SDRs using HTM and KNN classifiers. This work intends to improve HTM's spatial learning capacity by using the IClassifier interface, thereby exploiting KNN's power in similarity-based categorization. By means of this method, we want to create a classification-based reconstruction framework able to undo the SDR encoding process and restore the original input pictures. 
+
  
+# Introduction:
+ 
+In this project, an experiment which is performed to makes us indulge with the knowledge of Sparse Distributed Representations (SDRs),classifiers and an integral component in the neocortexapi.The goal of this work is to create a classification-based way to rebuild pictures from SDR-encoded data that takes advantage of the best parts of HTM and KNN. This will create a new framework that strikes a good balance between how quickly the reconstruction is done and how well it looks. Image reconstruction has use in many important areas.
+
 # METHODOLGY
 The implementation of this project is focused on incorporating machine learning methods such as Hierarchical Temporal Memory (HTM) and K-Nearest Neighbors (KNN) for image classification and reconstruction. It can be performed using pre-defined algorithms.
 The first step towards achieving the goal of the project is to binarize the images located in the training folder. Each image is adjusted to a standard dimension of 28x28 pixels. This maintains a specific degree of consistency among the images. In the binarization step, each pixel of an image is converted to either white or black. More technically, the pixel gets assigned 0 if it’s white and 1 if it’s black. The after effect is that a Sparse Distributed Representation (SDR) is achieved that can undergo further operations.
