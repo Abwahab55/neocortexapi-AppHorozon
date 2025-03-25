@@ -8,3 +8,6 @@
 * [Overview](#Overview)
 * [Problem Statement](#Problem-Statement)
 * [Introduction](#Introduction)
+
+* [Methodology](#Methodology)
+# METHODOLGY
