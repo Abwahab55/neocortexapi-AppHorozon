@@ -33,7 +33,10 @@ namespace NeoCortexApiSample
             binarizer.Run();
             Console.WriteLine("Image Binarization Completed. Encoded SDRs saved to " + sdrFolder);
 
-            // Verify that SDR files were generated
+
+            Console.WriteLine("Image Binarization Completed.");
+            //taking sdr values as .txt
+
             var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt");
             if (sdrFiles.Length == 0)
             {
@@ -91,8 +94,57 @@ namespace NeoCortexApiSample
                 {
                     Console.WriteLine($"HTM Training Cycle {cycle + 1}/{trainingCycles} completed.");
                 }
+            Console.WriteLine("Training Completed.");
+        }
+
+        private static void GenerateSimilarityGraph(Dictionary<string, (double htmSim, double knnSim)> similarityResults)
+        {
+            string outputFolder = Path.Combine(Environment.CurrentDirectory, "SimilarityPlots_Image_Inputs");
+
+            EnsureDirectoryExists(outputFolder);
+            //file height and width needs to mention
+            int width = 800;
+            int height = 400;
+            var bmp = new Bitmap(width, height);
+            var g = Graphics.FromImage(bmp);
+
+            g.Clear(Color.White);
+            var pen = new Pen(Color.Black);
+
+            double maxHtmSim = similarityResults.Values.Max(r => r.htmSim);
+            double maxKnnSim = similarityResults.Values.Max(r => r.knnSim);
+            double maxSim = Math.Max(maxHtmSim, maxKnnSim);
+
+            int barWidth = width / (2 * similarityResults.Count + 1);
+            int padding = 10;
+            int baseLineY = height - 50;
+
+            int x = padding;
+            foreach (var result in similarityResults)
+            {
+                string name = result.Key;
+                double htmSim = result.Value.htmSim;
+                double knnSim = result.Value.knnSim;
+
+                int htmBarHeight = (int)((htmSim / maxSim) * (height - 50));
+                g.FillRectangle(Brushes.Blue, x, baseLineY - htmBarHeight, barWidth, htmBarHeight);
+
+                int knnBarHeight = (int)((knnSim / maxSim) * (height - 50));
+                g.FillRectangle(Brushes.Green, x + barWidth, baseLineY - knnBarHeight, barWidth, knnBarHeight);
+                //for name
+                g.DrawString(name, new Font("Arial", 8), Brushes.Black, new PointF(x, baseLineY + 5));
+                //htm values
+                g.DrawString("HTM", new Font("Arial", 10), Brushes.Blue, new PointF(x - 50, baseLineY - htmBarHeight - 15));
+               //knn values
+                g.DrawString("KNN", new Font("Arial", 10), Brushes.Green, new PointF(x + barWidth + 10, baseLineY - knnBarHeight - 15));
+
+                x += 2 * barWidth + padding;
             }
-            Console.WriteLine("Training Completed.\n");
+
+            string outputPath = Path.Combine(outputFolder, "SimilarityComparison.png");
+            //out saved
+            bmp.Save(outputPath);
+            Console.WriteLine($"Similarity graph saved to {outputPath}.");
         }
 
         /// <summary>
@@ -181,9 +233,11 @@ namespace NeoCortexApiSample
             return (double)matchingBits / sdr1.Length;
         }
 
+
         /// <summary>
         /// Ensures a directory exists; if it does not, creates it.
         /// </summary>
+
         private static void EnsureDirectoryExists(string path)
         {
             if (!Directory.Exists(path))
