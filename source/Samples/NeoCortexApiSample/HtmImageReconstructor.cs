@@ -11,14 +11,14 @@ namespace NeoCortexApiSample
         public void RunReconstruction(string sdrFolder, string outputImageFolder,
                                       string reconstructedSdrFolder,
                                       IClassifier<int[], string> classifier,
-                                      int imageWidth = 28, int imageHeight = 28)
+                                      int imageWidth = 64, int imageHeight = 64)
         {
-            if (!Directory.Exists(outputImageFolder))
-                Directory.CreateDirectory(outputImageFolder);
-            if (!Directory.Exists(reconstructedSdrFolder))
-                Directory.CreateDirectory(reconstructedSdrFolder);
+            Directory.CreateDirectory(outputImageFolder);
+            Directory.CreateDirectory(reconstructedSdrFolder);
 
-            var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt");
+            var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt")
+                .Where(file => !file.EndsWith("_binarized.txt")).ToArray();
+
             foreach (var sdrFile in sdrFiles)
             {
                 string name = Path.GetFileNameWithoutExtension(sdrFile);
@@ -27,10 +27,9 @@ namespace NeoCortexApiSample
 
                 try
                 {
-                    int[] originalSdr = File.ReadAllText(sdrFile).Trim()
-                                        .Replace("\n", "").Replace("\r", "")
-                                        .Split(',').Where(x => !string.IsNullOrWhiteSpace(x))
-                                        .Select(int.Parse).ToArray();
+                    int[] originalSdr = File.ReadAllText(sdrFile)
+                        .Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(int.Parse).ToArray();
 
                     var predictions = classifier.GetPredictedInputValues(originalSdr, howMany: 1);
                     int[] reconstructedSdr = predictions.Count > 0 ? predictions[0].PredictedInput : originalSdr;
@@ -43,9 +42,10 @@ namespace NeoCortexApiSample
                         {
                             int x = i % imageWidth;
                             int y = i / imageWidth;
-                            int bitRecon = reconstructedSdr[i];
-                            int bitOrig = originalSdr.Length > i ? originalSdr[i] : 0;
-                            Color color = bitRecon == bitOrig ? (bitRecon == 1 ? Color.Black : Color.White) : Color.Gray;
+                            Color color = reconstructedSdr[i] == originalSdr[i]
+                                ? (reconstructedSdr[i] == 1 ? Color.Black : Color.White)
+                                : Color.Gray;
+
                             bmp.SetPixel(x, y, color);
                         }
                         bmp.Save(outImagePath);
@@ -59,3 +59,4 @@ namespace NeoCortexApiSample
         }
     }
 }
+
