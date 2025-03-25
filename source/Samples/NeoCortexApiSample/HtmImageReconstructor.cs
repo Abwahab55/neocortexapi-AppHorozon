@@ -8,6 +8,7 @@ namespace NeoCortexApiSample
 {
     public class HtmImageReconstructor
     {
+        //htm structure method
         public void RunReconstruction(string sdrFolder, string outputImageFolder,
                                       string reconstructedSdrFolder,
                                       IClassifier<int[], string> classifier,
@@ -51,6 +52,7 @@ namespace NeoCortexApiSample
                         bmp.Save(outImagePath);
                     }
                 }
+                //exception handle
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error reconstructing {name}: {ex.Message}");
