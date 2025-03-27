@@ -8,7 +8,12 @@
 * [Overview](#Overview)
 * [Problem Statement](#Problem-Statement)
 * [Introduction](#Introduction)
-
+* [The Overview of the project](#The-Overview-of-the-project)
+* [Spatial Pooler](#Spatial-Pooler)
+* [Phases of SP](#Phases-of-SP)
+* [Sparse Distributed Representation (SDR)](#Sparse-Distributed-Representation-(SDR))
+* [HTM Classifier](#HTM-Classifier)
+* [KNN Classifier](#KNN-Classifier)
 * [Methodology](#Methodology)
   
 # Problem Statement: 
@@ -19,6 +24,37 @@ This process provides a simple but effective way to add missing data. These meth
 # Introduction:
  
 In this project, an experiment which is performed to makes us indulge with the knowledge of Sparse Distributed Representations (SDRs),classifiers and an integral component in the neocortexapi.Reconstructing or approximating an image from incomplete, noisy, or partial data is the basic challenge in image reconstruction in computer vision, machine learning, and artificial intelligence.The goal of this work is to create a classification-based way to rebuild pictures from SDR-encoded data that takes advantage of the best parts of HTM and KNN. This will create a new framework that strikes a good balance between how quickly the reconstruction is done and how well it looks. Image reconstruction has use in many important areas.Image reconstruction improves object identification, feature classification, and pattern recognition under demanding situations.This work offers a computationally efficient and interpreted method applicable to many fields by solving the difficulties related to conventional deep learning models. The results of this study could provide fresh avenues for creating strong, scalable image reconstruction methods catered to practical applications.
+
+
+# The Overview of the project
+
+
+![image](https://github.com/user-attachments/assets/d5af9148-e4e6-4bf2-b96b-d36176a42d4c)
+
+
+
+# Spatial Pooler
+In the HTM framework, the Spatial Pooler (SP) is a component responsible for creating sparse distributed representations (SDR) of input data. The primary goal of the SP is to transform input patterns into a stable and sparse representation that subsequent stages of the neural network can easily use.
+In the HTM framework, the Spatial Pooler (SP) is a component responsible for creating sparse distributed representations (SDR) of input data. The primary goal of the SP is to transform input patterns into stable and sparse representations that subsequent stages of the neural network can easily use.
+In the HTM framework, the Spatial Pooler (SP) is a component responsible for creating sparse distributed representations (SDR) of input data. The primary goal of the SP is to transform input patterns into stable and sparse representations that subsequent stages of the neural network can easily use.
+
+
+# Phase of SP 
+The SP has three phases: overlap, inhibition, and learning.  Numerous columns exist inside a stored procedure.  Every column has a distinct arrangement of proximal synapses linked by a proximal dendritic segment.  Each proximal synapse provisionally links to a singular column from the input, so that each column in the SP corresponds to a distinct property inside the input.  The activity level of the input column serves as the synaptic input, where an active column is represented as "1" and an inactive column as "0".  The persistence value of the synapse is assessed to ascertain its connectivity.  If the persistence value is at least equal to the linked threshold, the synapse is considered connected; otherwise, it is deemed disconnected.  The persistence values are scalars inside the closed interval [0,1] 
+(Source:https://www.frontiersin.org/journals/computational-neuroscience/articles/10.3389/fncom.2017.00111/full )
+
+
+# Sparse Distributed Representation (SDR)
+Recent neuroscience research indicates that the brain utilizes Sparse Distributed Representations for information processing. This applies universally to all animals, ranging from mice to humans.  These SDRs are essential for enhancing comprehension of the brain's computational methodology.  SDRs represent the information the brain processes at a particular instant, with each active cell embodying a semantic facet of the overarching message.  Sparse denotes that only a limited number of the many (thousands of) neurons are concurrently active, as opposed to the conventional "dense" representation in computers, characterized by a few bits of 0s and 1s.  Distributed signifies that both the active cells and the importance of the pattern are dispersed across the depiction.  It makes the SDR robust against the failure of individual neurons and facilitates sub-sampling.  Each bit or neuron has a specific meaning; thus, if an identical bit is activated in two Sparse Distributed Representations (SDRs), it indicates semantic similarity.(Source: https://www.cortical.io/science/sparse-distributed-representations/?highlight=SDR)
+
+
+# HTM Classifier
+HTM Classifier is focused around the concept of Temporal Memory, The HTM classifier utilizes a spatial pooler for training to capture a set of images. The HTM classifier’s training was done with a spatial pooler to grab the images’ spatial features. It is then followed by a set training cycle of 20 repetitions in order to ensure that the model is able to adapt and comprehend meaningful representations of the images that were fed into it. To feed the model data, HTM uses columns and cells to form representations of the input data (SDR), which is referred to as a SDR.
+
+
+# KNN Classifier
+The KNN classifier is one of the simplest classifiers to use, but also one of the most effective at the same time in regards to classifying data, which is based off computational similarity to the closest training examples for that particular feature. In this instance, the training examples are the binarized images. The classifier “guesses” the class label based on the input SDRs and trains SDRs by calculating the similarity of the input SDRs and the training SDRs. 
+
 
 # Methodology:
 The implementation of this project is focused on incorporating machine learning methods such as Hierarchical Temporal Memory (HTM) and K-Nearest Neighbors (KNN) for image classification and reconstruction. It can be performed using pre-defined algorithms.
