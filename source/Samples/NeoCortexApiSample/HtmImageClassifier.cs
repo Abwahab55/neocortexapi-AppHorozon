@@ -13,22 +13,23 @@ namespace NeoCortexApiSample
 
         public HtmImageClassifier(int width = 64, int height = 64)
         {
-            var connections = new Connections(new HtmConfig
+            var config = new HtmConfig
             {
                 ColumnDimensions = new[] { width, height },
                 InputDimensions = new[] { width, height },
                 NumInputs = width * height,
                 PotentialPct = 0.6,
                 SynPermConnected = 0.2
-            });
+            };
 
+            var connections = new Connections(config);
             tm = new TemporalMemory();
             tm.Init(connections);
         }
 
         public void Learn(int[] input, Cell[] _)
         {
-            tm.Compute(input, true);
+            tm.Compute(input, learn: true);
             string hash = string.Join("", input.Select(i => i.ToString()));
             if (!trainingData.ContainsKey(hash))
             {
@@ -37,16 +38,24 @@ namespace NeoCortexApiSample
         }
 
         public int[] GetPredictedInputValue(Cell[] cells) =>
-            GetPredictedInputValues(cells.Select(c => c.Index).ToArray(), 1).FirstOrDefault()?.PredictedInput;
+            GetPredictedInputValues(cells.Select(c => c.Index).ToArray(), 1)
+                .FirstOrDefault()?.PredictedInput;
 
         public List<ClassifierResult<int[]>> GetPredictedInputValues(int[] sdr, short n)
         {
-            tm.Compute(sdr, false);
-            return trainingData.Values.Select(t => new ClassifierResult<int[]>
-            {
-                PredictedInput = t,
-                Similarity = t.Zip(sdr, (a, b) => a == b ? 1 : 0).Sum()
-            }).OrderByDescending(x => x.Similarity).Take(n).ToList();
+            // Feed the SDR into TM to update internal state
+            tm.Compute(sdr, learn: false);
+
+            // Return the top-n closest matches from training data
+            return trainingData.Values.Select(stored =>
+                new ClassifierResult<int[]>
+                {
+                    PredictedInput = stored,
+                    Similarity = stored.Zip(sdr, (a, b) => a == b ? 1 : 0).Sum()
+                })
+                .OrderByDescending(x => x.Similarity)
+                .Take(n)
+                .ToList();
         }
     }
 }
