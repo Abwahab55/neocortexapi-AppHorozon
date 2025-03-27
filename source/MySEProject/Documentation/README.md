@@ -28,8 +28,8 @@ In this project, an experiment which is performed to makes us indulge with the k
 
 # The Overview of the project
 
+![Conversation tree example (1)](https://github.com/user-attachments/assets/a7ed912a-05ec-4db7-8b1e-9554319adc50)
 
-![image](https://github.com/user-attachments/assets/d5af9148-e4e6-4bf2-b96b-d36176a42d4c)
 
 
 
