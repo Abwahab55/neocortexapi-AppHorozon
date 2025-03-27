@@ -8,11 +8,6 @@
 * [Overview](#Overview)
 * [Problem Statement](#Problem-Statement)
 * [Introduction](#Introduction)
-<<<<<<< HEAD
-
-* [Methodology](#Methodology)
-# METHODOLGY
-=======
 * [The Overview of the project](#The-Overview-of-the-project)
 * [Spatial Pooler](#Spatial-Pooler)
 * [Phases of SP](#Phases-of-SP)
