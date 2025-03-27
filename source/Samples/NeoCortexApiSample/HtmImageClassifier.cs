@@ -45,7 +45,7 @@ namespace NeoCortexApiSample
         {
             tm.Compute(sdr, learn: false);
 
-            var results = trainingData.Values.Select(stored => new ClassifierResult<int[]>
+            return trainingData.Values.Select(stored => new ClassifierResult<int[]>
             {
                 PredictedInput = stored,
                 Similarity = stored.Zip(sdr, (a, b) => a == b ? 1 : 0).Sum()
@@ -53,40 +53,6 @@ namespace NeoCortexApiSample
             .OrderByDescending(x => x.Similarity)
             .Take(n)
             .ToList();
-
-            foreach (var res in results)
-            {
-                Console.WriteLine("\n[HTM Prediction Similarity Metrics]");
-                PrintSimilarityMetrics(sdr, res.PredictedInput);
-            }
-
-            return results;
-        }
-
-        private void PrintSimilarityMetrics(int[] original, int[] prediction)
-        {
-            double jaccard = MathHelpers.JaccardSimilarityofBinaryArrays(original, prediction);
-            double cosine = ComputeCosineSimilarity(original, prediction);
-            double hamming = ComputeHammingSimilarity(original, prediction);
-            double hybrid = (jaccard + cosine + hamming) / 3.0;
-
-            Console.WriteLine($"  Cosine:  {cosine:F4}");
-            Console.WriteLine($"  Jaccard: {jaccard:F4}");
-            Console.WriteLine($"  Hamming: {hamming:F4}");
-            Console.WriteLine($"  Hybrid:  {hybrid:F4}");
-        }
-
-        private double ComputeCosineSimilarity(int[] a, int[] b)
-        {
-            double dot = a.Zip(b, (x, y) => x * y).Sum();
-            double magA = Math.Sqrt(a.Sum(x => x * x));
-            double magB = Math.Sqrt(b.Sum(y => y * y));
-            return (magA == 0 || magB == 0) ? 0.0 : dot / (magA * magB);
-        }
-
-        private double ComputeHammingSimilarity(int[] a, int[] b)
-        {
-            return a.Zip(b, (x, y) => x == y ? 1 : 0).Sum() / (double)a.Length;
         }
     }
 }

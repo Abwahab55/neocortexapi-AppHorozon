@@ -104,17 +104,36 @@ namespace NeoCortexApiSample
                 int[] htmReconSdr = ReadSdrFromFile(htmReconFile);
                 int[] knnReconSdr = ReadSdrFromFile(knnReconFile);
 
+                Console.WriteLine($"Similarity Results for \"{name}\":");
+
+                Console.WriteLine(" [HTM Similarity Metrics]");
+                PrintSimilarityMetrics(origSdr, htmReconSdr);
+
+                Console.WriteLine(" [k-NN Similarity Metrics]");
+                PrintSimilarityMetrics(origSdr, knnReconSdr);
+
+                Console.WriteLine();
+
                 double htmSim = ComputeHybridSimilarity(origSdr, htmReconSdr) * 100;
                 double knnSim = ComputeHybridSimilarity(origSdr, knnReconSdr) * 100;
-
-                Console.WriteLine($"Similarity Results for \"{name}\":");
-                Console.WriteLine($" HTM Similarity: {htmSim:0.00}%");
-                Console.WriteLine($" KNN Similarity: {knnSim:0.00}%\n");
 
                 results[name] = (htmSim, knnSim);
             }
 
             return results;
+        }
+
+        private static void PrintSimilarityMetrics(int[] original, int[] prediction)
+        {
+            double jaccard = MathHelpers.JaccardSimilarityofBinaryArrays(original, prediction);
+            double cosine = ComputeCosineSimilarity(original, prediction);
+            double hamming = ComputeHammingSimilarity(original, prediction);
+            double hybrid = (jaccard + cosine + hamming) / 3.0;
+
+            Console.WriteLine($"  Cosine:  {cosine:F4}");
+            Console.WriteLine($"  Jaccard: {jaccard:F4}");
+            Console.WriteLine($"  Hamming: {hamming:F4}");
+            Console.WriteLine($"  Hybrid:  {hybrid:F4}");
         }
 
         private static void GenerateSimilarityGraph(Dictionary<string, (double htmSim, double knnSim)> similarityResults)
