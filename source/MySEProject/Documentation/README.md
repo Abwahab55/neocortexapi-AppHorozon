@@ -8,11 +8,11 @@
 * [Overview](#Overview)
 * [Problem Statement](#Problem-Statement)
 * [Introduction](#Introduction)
-<<<<<<< HEAD
+  
 
 * [Methodology](#Methodology)
 # METHODOLGY
-=======
+
 * [The Overview of the project](#The-Overview-of-the-project)
 * [Spatial Pooler](#Spatial-Pooler)
 * [Phases of SP](#Phases-of-SP)
@@ -33,7 +33,8 @@ In this project, an experiment which is performed to makes us indulge with the k
 
 # The Overview of the project
 
-![Conversation tree example (1)](https://github.com/user-attachments/assets/a7ed912a-05ec-4db7-8b1e-9554319adc50)
+![Copy of Conversation tree example (2)](https://github.com/user-attachments/assets/fe551f53-0a56-42cb-a8c9-1bc4b7949f7e)
+                             Figure 1 Image Reconstruction Using Classifiers
 
 
 
@@ -62,7 +63,7 @@ The KNN classifier is one of the simplest classifiers to use, but also one of th
 
 
 # Methodology:
->>>>>>> AppHorozon
+AppHorozon
 The implementation of this project is focused on incorporating machine learning methods such as Hierarchical Temporal Memory (HTM) and K-Nearest Neighbors (KNN) for image classification and reconstruction. It can be performed using pre-defined algorithms.
 The first step towards achieving the goal of the project is to binarize the images located in the training folder. Each image is adjusted to a standard dimension of 28x28 pixels. This maintains a specific degree of consistency among the images. In the binarization step, each pixel of an image is converted to either white or black. More technically, the pixel gets assigned 0 if it’s white and 1 if it’s black. The after effect is that a Sparse Distributed Representation (SDR) is achieved that can undergo further operations.
 To complete the binarization, the ImageBinarizerSpatialPattern class was created. This class takes an image, transforms it to a monochrome version, and subsequently performs a binarization by assigning white and black values for pixels. This transformed image is stored as an SDR.
