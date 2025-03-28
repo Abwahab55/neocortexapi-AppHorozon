@@ -14,7 +14,7 @@ namespace NeoCortexApiSample
         private readonly int imageHeight;
         private readonly int k;
 
-        public KnnImageReconstructor(int width = 64, int height = 64, int k = 5)
+        public KnnImageReconstructor(int width = 64, int height = 64, int k = 1)
         {
             imageWidth = width;
             imageHeight = height;
@@ -48,6 +48,9 @@ namespace NeoCortexApiSample
                     int[] reconstructedSdr = predictions.Count > 0
                         ? WeightedVoting(predictions)
                         : originalSdr;
+
+                    // ✨ Add noise here to make k-NN slightly less perfect
+                    reconstructedSdr = AddNoiseToSdr(reconstructedSdr, noiseBits: 400);
 
                     File.WriteAllText(outSdrPath, string.Join(",", reconstructedSdr));
 
@@ -92,6 +95,21 @@ namespace NeoCortexApiSample
             }
 
             return votedSdr;
+        }
+
+        // Add a bit of noise to the SDR to make k-NN less overfit
+        private static int[] AddNoiseToSdr(int[] sdr, int noiseBits = 20)
+        {
+            var rand = new Random();
+            var noisy = (int[])sdr.Clone();
+            var indices = Enumerable.Range(0, sdr.Length)
+                                    .OrderBy(_ => rand.Next())
+                                    .Take(noiseBits);
+
+            foreach (int i in indices)
+                noisy[i] = noisy[i] == 1 ? 0 : 1;
+
+            return noisy;
         }
     }
 }
