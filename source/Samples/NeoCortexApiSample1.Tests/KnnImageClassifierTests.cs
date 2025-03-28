@@ -11,7 +11,7 @@ namespace NeoCortexApiSample1.Tests
         [TestMethod]
         public void Learn_And_Predict_ShouldWork()
         {
-            var classifier = new KnnImageClassifier(k: 3);
+            var classifier = new KnnImageClassifier();
             var sdr = Enumerable.Repeat(1, 64 * 64).ToArray();
             classifier.Learn(sdr, new Cell[sdr.Length]);
 

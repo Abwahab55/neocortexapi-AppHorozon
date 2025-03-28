@@ -3,63 +3,47 @@ using System.Collections.Generic;
 using System.Linq;
 using NeoCortexApi.Classifiers;
 using NeoCortexApi.Entities;
-using NeoCortexApi.Utility;
 
 namespace NeoCortexApiSample
 {
     public class KnnImageClassifier : IClassifier<int[], string>
     {
-        private readonly List<int[]> trainingSdrs = new();
-        private readonly int k;
+        private readonly KNeighborsClassifier<string, int[]> knn;
 
-        public KnnImageClassifier(int k = 5) => this.k = k;
-
-        public void Learn(int[] input, Cell[] _) => trainingSdrs.Add(input);
-
-        public int[] GetPredictedInputValue(Cell[] cells) =>
-            GetPredictedInputValues(cells.Select(c => c.Index).ToArray(), 1).FirstOrDefault()?.PredictedInput;
-
-        public List<ClassifierResult<int[]>> GetPredictedInputValues(int[] input, short howMany)
+        public KnnImageClassifier()
         {
-            var results = trainingSdrs.Select(sdr => new ClassifierResult<int[]>
+            knn = new KNeighborsClassifier<string, int[]>(); // no constructor args needed
+        }
+
+        // Learn SDR with associated label
+        public void Learn(int[] input, Cell[] output)
+        {
+            string label = string.Join(",", input); // You may replace with filename if available
+            knn.Learn(label, ConvertToCells(input));
+        }
+
+        // Predict the most likely SDR from cell indices
+        public int[] GetPredictedInputValue(Cell[] predictiveCells)
+        {
+            var results = knn.GetPredictedInputValues(predictiveCells, 1);
+            string bestLabel = results.FirstOrDefault()?.PredictedInput;
+            return bestLabel?.Split(',').Select(int.Parse).ToArray() ?? Array.Empty<int>();
+        }
+
+        // Predict top-k closest SDRs (used in reconstruction)
+        public List<ClassifierResult<int[]>> GetPredictedInputValues(int[] input, short howMany = 1)
+        {
+            var results = knn.GetPredictedInputValues(ConvertToCells(input), howMany);
+            return results.Select(r => new ClassifierResult<int[]>
             {
-                PredictedInput = sdr,
-                Similarity = sdr.Zip(input, (a, b) => a == b ? 1 : 0).Sum()
-            }).OrderByDescending(x => x.Similarity).Take(howMany).ToList();
-
-            foreach (var res in results)
-            {
-                Console.WriteLine("\n[k-NN Prediction Similarity Metrics]");
-                PrintSimilarityMetrics(input, res.PredictedInput);
-            }
-
-            return results;
+                PredictedInput = r.PredictedInput.Split(',').Select(int.Parse).ToArray(),
+                Similarity = r.Similarity
+            }).ToList();
         }
 
-        private void PrintSimilarityMetrics(int[] original, int[] prediction)
+        private Cell[] ConvertToCells(int[] indices)
         {
-            double jaccard = MathHelpers.JaccardSimilarityofBinaryArrays(original, prediction);
-            double cosine = ComputeCosineSimilarity(original, prediction);
-            double hamming = ComputeHammingSimilarity(original, prediction);
-            double hybrid = (jaccard + cosine + hamming) / 3.0;
-
-            Console.WriteLine($"  Cosine:  {cosine:F4}");
-            Console.WriteLine($"  Jaccard: {jaccard:F4}");
-            Console.WriteLine($"  Hamming: {hamming:F4}");
-            Console.WriteLine($"  Hybrid:  {hybrid:F4}");
-        }
-
-        private double ComputeCosineSimilarity(int[] a, int[] b)
-        {
-            double dot = a.Zip(b, (x, y) => x * y).Sum();
-            double magA = Math.Sqrt(a.Sum(x => x * x));
-            double magB = Math.Sqrt(b.Sum(y => y * y));
-            return (magA == 0 || magB == 0) ? 0.0 : dot / (magA * magB);
-        }
-
-        private double ComputeHammingSimilarity(int[] a, int[] b)
-        {
-            return a.Zip(b, (x, y) => x == y ? 1 : 0).Sum() / (double)a.Length;
+            return indices.Select(i => new Cell { Index = i }).ToArray();
         }
     }
 }
