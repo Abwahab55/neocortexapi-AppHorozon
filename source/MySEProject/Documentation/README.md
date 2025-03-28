@@ -87,8 +87,11 @@ neocortexapi\source\Samples\NeoCortexApiSample\bin\Debug\net8.0\
 ## Example Output
 **Original vs Reconstructed Image**
 **Original**: https://github.com/Abwahab55/neocortexapi-AppHorozon/blob/AppHorozon/source/MySEProject/Documentation/result/TestFiles.png
+
 **Reconstructed using HTM**: https://github.com/Abwahab55/neocortexapi-AppHorozon/blob/AppHorozon/source/MySEProject/Documentation/result/TestFiles_HTM_Reconstructed.png
+
 **Reconstructed using KNN**: https://github.com/Abwahab55/neocortexapi-AppHorozon/blob/AppHorozon/source/MySEProject/Documentation/result/TestFiles_KNN_Reconstructed.png
+
 **Similarity comparison**: https://github.com/Abwahab55/neocortexapi-AppHorozon/blob/AppHorozon/source/MySEProject/Documentation/result/SimilarityComparison_Improved.png
 
 ## Running the Project
