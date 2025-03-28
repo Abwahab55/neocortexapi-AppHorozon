@@ -48,7 +48,7 @@ namespace NeoCortexApiSample
             var htmReconstructor = new HtmImageReconstructor();
             htmReconstructor.RunReconstruction(sdrFolder, outputFolder, reconstructedSdrFolder, htmClassifier, 64, 64);
 
-            var knnReconstructor = new KnnImageReconstructor(64, 64, k: 5);
+            var knnReconstructor = new KnnImageReconstructor(64, 64, k: 1);
             knnReconstructor.RunReconstruction(sdrFolder, outputFolder, reconstructedSdrFolder, knnClassifier);
 
             Console.WriteLine("Computing Similarity between Original and Reconstructed SDRs...");
@@ -62,20 +62,25 @@ namespace NeoCortexApiSample
         private static void TrainClassifier(IClassifier<int[], string> classifier, string sdrFolder, bool isHtm)
         {
             Console.WriteLine($"Training Classifier: {classifier.GetType().Name}");
+
             var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt")
                 .Where(file => !file.EndsWith("_binarized.txt"))
-                .OrderBy(x => x)
+                .OrderBy(x => x) // order = sequence
                 .ToList();
 
             int trainingCycles = isHtm ? 20 : 1;
 
             for (int cycle = 0; cycle < trainingCycles; cycle++)
             {
+                if (isHtm && classifier is HtmImageClassifier htm)
+                    htm.ResetTemporalMemory(); // clear old context
+
                 foreach (var sdrFile in sdrFiles)
                 {
                     string fileName = Path.GetFileNameWithoutExtension(sdrFile);
                     int[] sdr = ReadSdrFromFile(sdrFile);
                     classifier.Learn(sdr, new Cell[sdr.Length]);
+
                     if (cycle == 0)
                         Console.WriteLine($"Trained on {fileName} (SDR length {sdr.Length})");
                 }
@@ -83,6 +88,7 @@ namespace NeoCortexApiSample
                 if (isHtm)
                     Console.WriteLine($"HTM Training Cycle {cycle + 1}/{trainingCycles} completed.");
             }
+
             Console.WriteLine("Training Completed.\n");
         }
 
@@ -104,12 +110,18 @@ namespace NeoCortexApiSample
                 int[] htmReconSdr = ReadSdrFromFile(htmReconFile);
                 int[] knnReconSdr = ReadSdrFromFile(knnReconFile);
 
+                Console.WriteLine($"Similarity Results for \"{name}\":");
+
+                Console.WriteLine(" [HTM Similarity Metrics]");
+                PrintSimilarityMetrics(origSdr, htmReconSdr);
+
+                Console.WriteLine(" [k-NN Similarity Metrics]");
+                PrintSimilarityMetrics(origSdr, knnReconSdr);
+
+                Console.WriteLine();
+
                 double htmSim = ComputeHybridSimilarity(origSdr, htmReconSdr) * 100;
                 double knnSim = ComputeHybridSimilarity(origSdr, knnReconSdr) * 100;
-
-                Console.WriteLine($"Similarity Results for \"{name}\":");
-                Console.WriteLine($" HTM Similarity: {htmSim:0.00}%");
-                Console.WriteLine($" KNN Similarity: {knnSim:0.00}%\n");
 
                 results[name] = (htmSim, knnSim);
             }
@@ -117,49 +129,81 @@ namespace NeoCortexApiSample
             return results;
         }
 
+        private static void PrintSimilarityMetrics(int[] original, int[] prediction)
+        {
+            double jaccard = MathHelpers.JaccardSimilarityofBinaryArrays(original, prediction) * 100;
+            double cosine = ComputeCosineSimilarity(original, prediction) * 100;
+            double hamming = ComputeHammingSimilarity(original, prediction) * 100;
+            double hybrid = (jaccard + cosine + hamming) / 3.0;
+
+            Console.WriteLine($"  Cosine:  {cosine :F4}");
+            Console.WriteLine($"  Jaccard: {jaccard :F4}");
+            Console.WriteLine($"  Hamming: {hamming :F4}");
+            Console.WriteLine($"  Hybrid:  {hybrid :F4}");
+        }
+
         private static void GenerateSimilarityGraph(Dictionary<string, (double htmSim, double knnSim)> similarityResults)
         {
             string outputFolder = Path.Combine(Environment.CurrentDirectory, "SimilarityPlots_Image_Inputs");
             EnsureDirectoryExists(outputFolder);
 
-            int width = 800;
-            int height = 400;
+            int width = 1600;  // larger canvas
+            int height = 600;
             var bmp = new Bitmap(width, height);
-            var g = Graphics.FromImage(bmp);
-
+            using var g = Graphics.FromImage(bmp);
             g.Clear(Color.White);
 
-            double maxHtmSim = similarityResults.Values.Max(r => r.htmSim);
-            double maxKnnSim = similarityResults.Values.Max(r => r.knnSim);
-            double maxSim = Math.Max(maxHtmSim, maxKnnSim);
+            var font = new Font("Arial", 9);
+            var labelFont = new Font("Arial", 8);
+            var titleFont = new Font("Arial", 12, FontStyle.Bold);
 
-            int barWidth = width / (2 * similarityResults.Count + 1);
-            int padding = 10;
-            int baseLineY = height - 50;
+            double maxSim = 100.0; // all similarity metrics max at 100%
+            int barGroupCount = similarityResults.Count;
+            int groupWidth = width / barGroupCount;
+            int barWidth = groupWidth / 3;
+            int baseLineY = height - 100;
 
-            int x = padding;
+            // Draw Y-axis
+            g.DrawLine(Pens.Black, 50, baseLineY, width - 50, baseLineY);
+            for (int i = 0; i <= 10; i++)
+            {
+                int y = baseLineY - (int)(i * 0.1 * (height - 150));
+                g.DrawLine(Pens.LightGray, 50, y, width - 50, y);
+                g.DrawString($"{i * 10}%", labelFont, Brushes.Black, 5, y - 6);
+            }
+
+            int x = 60;
             foreach (var result in similarityResults)
             {
                 string name = result.Key;
                 double htmSim = result.Value.htmSim;
                 double knnSim = result.Value.knnSim;
 
-                int htmBarHeight = (int)((htmSim / maxSim) * (height - 50));
-                g.FillRectangle(Brushes.Blue, x, baseLineY - htmBarHeight, barWidth, htmBarHeight);
+                int htmHeight = (int)((htmSim / maxSim) * (height - 150));
+                int knnHeight = (int)((knnSim / maxSim) * (height - 150));
 
-                int knnBarHeight = (int)((knnSim / maxSim) * (height - 50));
-                g.FillRectangle(Brushes.Green, x + barWidth, baseLineY - knnBarHeight, barWidth, knnBarHeight);
+                g.FillRectangle(Brushes.Blue, x, baseLineY - htmHeight, barWidth, htmHeight);
+                g.FillRectangle(Brushes.Green, x + barWidth + 2, baseLineY - knnHeight, barWidth, knnHeight);
 
-                g.DrawString(name, new Font("Arial", 8), Brushes.Black, new PointF(x, baseLineY + 5));
-                g.DrawString("HTM", new Font("Arial", 8), Brushes.Blue, new PointF(x, baseLineY - htmBarHeight - 20));
-                g.DrawString("KNN", new Font("Arial", 8), Brushes.Green, new PointF(x + barWidth, baseLineY - knnBarHeight - 20));
+                // Labels above bars
+                g.DrawString($"{htmSim:F1}%", labelFont, Brushes.Blue, x, baseLineY - htmHeight - 15);
+                g.DrawString($"{knnSim:F1}%", labelFont, Brushes.Green, x + barWidth + 2, baseLineY - knnHeight - 15);
 
-                x += 2 * barWidth + padding;
+                // X-label rotated for better spacing
+                g.TranslateTransform(x, baseLineY + 10);
+                g.RotateTransform(45);
+                g.DrawString(name, font, Brushes.Black, 0, 0);
+                g.ResetTransform();
+
+                x += groupWidth;
             }
 
-            string outputPath = Path.Combine(outputFolder, "SimilarityComparison.png");
+            // Title
+            g.DrawString("HTM vs k-NN Image Reconstruction Similarity (Hybrid %)", titleFont, Brushes.Black, width / 3, 10);
+
+            string outputPath = Path.Combine(outputFolder, "SimilarityComparison_Improved.png");
             bmp.Save(outputPath);
-            Console.WriteLine($"Similarity graph saved to {outputPath}.");
+            Console.WriteLine($"📊 Improved similarity graph saved to {outputPath}");
         }
 
         private static int[] ReadSdrFromFile(string path)
