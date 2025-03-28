@@ -27,7 +27,9 @@ In this project, an experiment which is performed to makes us indulge with the k
 
 # The Overview of the project
 
-![Conversation tree example (1)](https://github.com/user-attachments/assets/a7ed912a-05ec-4db7-8b1e-9554319adc50)
+![Copy of Conversation tree example (2)](https://github.com/user-attachments/assets/b7d66182-0b3b-4289-a612-bb1f1ec07c9f)
+Figure 1 Image Reconstruction Using Classifiers
+
 
 
 
