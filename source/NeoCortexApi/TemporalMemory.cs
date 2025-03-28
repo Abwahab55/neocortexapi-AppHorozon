@@ -10,6 +10,7 @@ using System.Linq;
 
 namespace NeoCortexApi
 {
+
     /// <summary>
     /// Implementation of Temporal Memory algorithm.
     /// </summary>
@@ -900,12 +901,37 @@ namespace NeoCortexApi
             {
                 //nameof(TemporalMemory.connections)
             };
-            HtmSerializer.SerializeObject(obj, name, sw, ignoreMembers);  
+            HtmSerializer.SerializeObject(obj, name, sw, ignoreMembers);
         }
 
         public static object Deserialize<T>(StreamReader sr, string name)
         {
             return HtmSerializer.DeserializeObject<T>(sr, name);
         }
+
+
+       /// <summary>
+       /// need this to reconstruct the predicted columns, and from there, a predicted SDR. thats why we added or fixed a GetPredictiveCells() method to return all predictive Cell indices.
+
+        /// </summary>
+        public List<int> GetPredictiveCells()
+        {
+            var predictiveCells = new List<int>();
+
+            if (this.connections?.Cells == null)
+                return predictiveCells;
+
+            for (int i = 0; i < this.connections.Cells.Length; i++)
+            {
+                if (this.connections.Cells[i].IsPredictive)
+                {
+                    predictiveCells.Add(i);
+                }
+            }
+
+            return predictiveCells;
+        }
+
     }
+
 }
