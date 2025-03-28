@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeoCortexApiSample1.Tests", "..\NeoCortexApiSample1.Tests\NeoCortexApiSample1.Tests.csproj", "{1F3BE2E2-8854-470A-AF06-83FC4F44B432}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeoCortexApiSample", "..\NeoCortexApiSample\NeoCortexApiSample.csproj", "{43F1D754-0D58-4418-8179-59813C13715F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1F3BE2E2-8854-470A-AF06-83FC4F44B432}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F3BE2E2-8854-470A-AF06-83FC4F44B432}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F3BE2E2-8854-470A-AF06-83FC4F44B432}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F3BE2E2-8854-470A-AF06-83FC4F44B432}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43F1D754-0D58-4418-8179-59813C13715F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43F1D754-0D58-4418-8179-59813C13715F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43F1D754-0D58-4418-8179-59813C13715F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43F1D754-0D58-4418-8179-59813C13715F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
