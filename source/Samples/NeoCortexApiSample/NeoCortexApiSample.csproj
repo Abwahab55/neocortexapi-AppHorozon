@@ -23,18 +23,23 @@
     <Compile Remove="Program1.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="OpenCvSharp4" Version="4.10.0.20241108" />
-    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.10.0.20241108" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\NeoCortexApi\NeoCortexApi.csproj" />
     <ProjectReference Include="..\..\NeoCortexEntities\NeoCortexEntities.csproj" />
     <ProjectReference Include="..\..\NeoCortexUtils\NeoCortexUtils.csproj" />
     <ProjectReference Include="..\..\GridCell\GridCell.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Sample\Car.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Sample\image2.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Sample\neww.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Sample\TestFiles.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>

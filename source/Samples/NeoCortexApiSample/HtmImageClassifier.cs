@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using NeoCortexApi;
 using NeoCortexApi.Classifiers;
@@ -9,68 +8,45 @@ namespace NeoCortexApiSample
 {
     public class HtmImageClassifier : IClassifier<int[], string>
     {
-        private Dictionary<string, int[]> trainingData = new Dictionary<string, int[]>();
-        private TemporalMemory tm;
-        private Connections connections;
+        private readonly Dictionary<string, int[]> trainingData = new();
+        private readonly TemporalMemory tm;
 
-        public HtmImageClassifier()
+        public HtmImageClassifier(int width = 64, int height = 64)
         {
-            connections = new Connections(new HtmConfig
+            var connections = new Connections(new HtmConfig
             {
-                ColumnDimensions = new int[] { 28, 28 },
-                InputDimensions = new int[] { 28, 28 },
-                NumInputs = 784,
+                ColumnDimensions = new[] { width, height },
+                InputDimensions = new[] { width, height },
+                NumInputs = width * height,
                 PotentialPct = 0.6,
-                SynPermInactiveDec = 0.005,
-                SynPermActiveInc = 0.05,
-                SynPermConnected = 0.2,
-                NumActiveColumnsPerInhArea = 50
+                SynPermConnected = 0.2
             });
+
             tm = new TemporalMemory();
             tm.Init(connections);
         }
 
-        public void Learn(int[] input, Cell[] output)
+        public void Learn(int[] input, Cell[] _)
         {
-            tm.Compute(input, learn: true);
-            string key = string.Join(",", input);
-            if (!trainingData.ContainsKey(key))
+            tm.Compute(input, true);
+            string hash = string.Join("", input.Select(i => i.ToString()));
+            if (!trainingData.ContainsKey(hash))
             {
-                trainingData[key] = input;
+                trainingData[hash] = input;
             }
         }
 
-        public int[] GetPredictedInputValue(Cell[] unclassifiedCells)
+        public int[] GetPredictedInputValue(Cell[] cells) =>
+            GetPredictedInputValues(cells.Select(c => c.Index).ToArray(), 1).FirstOrDefault()?.PredictedInput;
+
+        public List<ClassifierResult<int[]>> GetPredictedInputValues(int[] sdr, short n)
         {
-            if (unclassifiedCells == null || unclassifiedCells.Length == 0)
+            tm.Compute(sdr, false);
+            return trainingData.Values.Select(t => new ClassifierResult<int[]>
             {
-                return Array.Empty<int>();
-            }
-
-            int[] inputSdr = unclassifiedCells.Select(c => c.Index).ToArray();
-            var predictedResults = GetPredictedInputValues(inputSdr, 1);
-
-            return predictedResults.Count > 0 ? predictedResults[0].PredictedInput : Array.Empty<int>();
-        }
-
-        public List<ClassifierResult<int[]>> GetPredictedInputValues(int[] inputSdr, short howMany = 3)
-        {
-            tm.Compute(inputSdr, learn: false);
-            var results = new List<ClassifierResult<int[]>>();
-
-            foreach (var kv in trainingData)
-            {
-                int[] storedSdr = kv.Value;
-                if (storedSdr.Length != inputSdr.Length)
-                    continue;
-
-                results.Add(new ClassifierResult<int[]>
-                {
-                    PredictedInput = storedSdr,
-                    Similarity = 0 // Placeholder since similarity is calculated in Program.cs
-                });
-            }
-            return results.OrderByDescending(r => r.Similarity).Take(howMany).ToList();
+                PredictedInput = t,
+                Similarity = t.Zip(sdr, (a, b) => a == b ? 1 : 0).Sum()
+            }).OrderByDescending(x => x.Similarity).Take(n).ToList();
         }
     }
 }
