@@ -3,7 +3,7 @@ using NeoCortexApiSample;
 using NeoCortexApi.Classifiers;
 using System.IO;
 
-namespace NeoCortexApiSample.Tests
+namespace NeoCortexApiSample1.Tests
 {
     [TestClass]
     public class HtmImageReconstructorTests

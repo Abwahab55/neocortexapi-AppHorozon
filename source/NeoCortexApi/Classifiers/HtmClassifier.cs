@@ -144,7 +144,7 @@ namespace NeoCortexApi.Classifiers
             }
 
             var previousOne = m_AllInputs[input][Math.Max(0, m_AllInputs[input].Count - 2)];
-
+           
             if (!previousOne.SequenceEqual(cellIndicies))
             {
                 // double numOfSameBitsPct = (double)(((double)(this.activeMap2[input].Intersect(cellIndicies).Count()) / Math.Max((double)cellIndicies.Length, this.activeMap2[input].Length)));
