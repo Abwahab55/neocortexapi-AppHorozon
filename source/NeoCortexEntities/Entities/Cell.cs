@@ -22,7 +22,10 @@ namespace NeoCortexApi.Entities
 
         /// <summary>
         /// Index of the cell.
+        /// To reconstruct an SDR from predictive cells, we need to know which column each predictive cell belongs to
         /// </summary>
+        public bool IsPredictive { get; set; }
+
         public int Index { get; set; }
 
         /// <summary>
