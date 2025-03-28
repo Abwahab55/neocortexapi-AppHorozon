@@ -1,40 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using NeoCortexApi.Classifiers;
+using NeoCortexApi.Entities;
+using System.Collections.Generic;
 
 namespace NeoCortexApiSample
 {
     public class KnnImageReconstructor
     {
-        private int imageWidth;
-        private int imageHeight;
-        private int _k;
+        private readonly int imageWidth;
+        private readonly int imageHeight;
+        private readonly int k;
 
-        public KnnImageReconstructor(int width = 28, int height = 28, int k = 5)
+        public KnnImageReconstructor(int width = 64, int height = 64, int k = 5)
         {
             imageWidth = width;
             imageHeight = height;
-            _k = k;
+            this.k = k;
         }
-        //reconstruction method for knn classifier
+
         public void RunReconstruction(string sdrFolder, string outputImageFolder,
                                       string reconstructedSdrFolder,
                                       IClassifier<int[], string> classifier)
         {
-            if (!Directory.Exists(outputImageFolder))
-                Directory.CreateDirectory(outputImageFolder);
-            if (!Directory.Exists(reconstructedSdrFolder))
-                Directory.CreateDirectory(reconstructedSdrFolder);
+            Directory.CreateDirectory(outputImageFolder);
+            Directory.CreateDirectory(reconstructedSdrFolder);
 
-            var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt");
-            if (sdrFiles.Length == 0)
-            {
-                Console.WriteLine("No SDR files found. Ensure SDR generation was successful.");
-                return;
-            }
+            var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt")
+                .Where(file => !file.EndsWith("_binarized.txt")).ToArray();
 
             foreach (var sdrFile in sdrFiles)
             {
@@ -44,18 +39,32 @@ namespace NeoCortexApiSample
 
                 try
                 {
-                    int[] originalSdr = File.ReadAllText(sdrFile).Trim()
-                                            .Replace("\n", "").Replace("\r", "")
-                                            .Split(',')
-                                            .Where(x => !string.IsNullOrWhiteSpace(x))
-                                            .Select(int.Parse)
-                                            .ToArray();
+                    int[] originalSdr = File.ReadAllText(sdrFile)
+                        .Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(int.Parse).ToArray();
 
-                    var predictions = classifier.GetPredictedInputValues(originalSdr, (short)_k);
-                    int[] reconstructedSdr = predictions.Count > 0 ? WeightedVoting(predictions) : originalSdr;
+                    var predictions = classifier.GetPredictedInputValues(originalSdr, (short)k);
+
+                    int[] reconstructedSdr = predictions.Count > 0
+                        ? WeightedVoting(predictions)
+                        : originalSdr;
 
                     File.WriteAllText(outSdrPath, string.Join(",", reconstructedSdr));
-                    SaveSdrToImage(reconstructedSdr, originalSdr, outImagePath);
+
+                    using (Bitmap bmp = new Bitmap(imageWidth, imageHeight))
+                    {
+                        for (int i = 0; i < reconstructedSdr.Length; i++)
+                        {
+                            int x = i % imageWidth;
+                            int y = i / imageWidth;
+                            Color color = reconstructedSdr[i] == originalSdr[i]
+                                ? (reconstructedSdr[i] == 1 ? Color.Black : Color.White)
+                                : Color.Gray;
+
+                            bmp.SetPixel(x, y, color);
+                        }
+                        bmp.Save(outImagePath);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -67,31 +76,22 @@ namespace NeoCortexApiSample
         private int[] WeightedVoting(List<ClassifierResult<int[]>> predictions)
         {
             int length = predictions[0].PredictedInput.Length;
-            int[] finalSdr = new int[length];
+            int[] votedSdr = new int[length];
+
             for (int i = 0; i < length; i++)
             {
-                double onesSum = predictions.Where(p => p.PredictedInput[i] == 1).Sum(p => p.Similarity);
-                double zerosSum = predictions.Where(p => p.PredictedInput[i] == 0).Sum(p => p.Similarity);
-                finalSdr[i] = onesSum > zerosSum ? 1 : 0;
-            }
-            return finalSdr;
-        }
+                double onesScore = predictions
+                    .Where(p => p.PredictedInput[i] == 1)
+                    .Sum(p => p.Similarity);
 
-        private void SaveSdrToImage(int[] reconstructedSdr, int[] originalSdr, string outputPath)
-        {
-            using (Bitmap bmp = new Bitmap(imageWidth, imageHeight))
-            {
-                for (int i = 0; i < Math.Min(reconstructedSdr.Length, originalSdr.Length); i++)
-                {
-                    int x = i % imageWidth;
-                    int y = i / imageWidth;
-                    int bitRecon = reconstructedSdr[i];
-                    int bitOrig = originalSdr.Length > i ? originalSdr[i] : 0;
-                    Color color = bitRecon == bitOrig ? (bitRecon == 1 ? Color.Black : Color.White) : Color.Gray;
-                    bmp.SetPixel(x, y, color);
-                }
-                bmp.Save(outputPath);
+                double zerosScore = predictions
+                    .Where(p => p.PredictedInput[i] == 0)
+                    .Sum(p => p.Similarity);
+
+                votedSdr[i] = onesScore >= zerosScore ? 1 : 0;
             }
+
+            return votedSdr;
         }
     }
 }
