@@ -99,6 +99,7 @@ neocortexapi\source\Samples\NeoCortexApiSample\bin\Debug\net8.0\
 **Dependencies:**
 - .NET 8
 - NeoCortexApi
+- Daenet ImageBinarizer
 - MSTest (for Unit Testing)
 
 **Run Instructions:**
