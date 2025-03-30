@@ -18,7 +18,7 @@ namespace NeoCortexApiSample
         // Learn SDR with associated label
         public void Learn(int[] input, Cell[] output)
         {
-            string label = string.Join(",", input); // You may replace with filename if available
+            string label = string.Join(",", input); 
             knn.Learn(label, ConvertToCells(input));
         }
 
