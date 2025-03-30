@@ -59,30 +59,240 @@ The KNN classifier is one of the simplest classifiers to use, but also one of th
 
 # Methodology:
 The implementation of this project is focused on incorporating machine learning methods such as Hierarchical Temporal Memory (HTM) and K-Nearest Neighbors (KNN) for image classification and reconstruction. It can be performed using pre-defined algorithms.
+
 **Image Binarization**:
 The first step towards achieving the goal of the project is to binarize the images located in the training folder.the training folder is located here:https://github.com/Abwahab55/neocortexapi-AppHorozon/tree/AppHorozon/source/Samples/NeoCortexApiSample/Sample  and Imagebinarizer from Dianet was used to binarize the images. Each image is adjusted to a standard dimension of 64x64 pixels. This maintains a specific degree of consistency among the images. In the binarization step, each pixel of an image is converted to either white or black. More technically, the pixel gets assigned 0 if it’s white and 1 if it’s black. The after effect is that a Sparse Distributed Representation (SDR) is achieved that can undergo further operations.
 To complete the binarization, the ImageBinarizerSpatialPattern class was created. This class takes an image, transforms it to a monochrome version, and subsequently performs a binarization by assigning white and black values for pixels.
+```csharp
+// Step 1: Binarize grayscale image into 0s and 1s
+var binarizer = new ImageBinarizer(new BinarizerParams
+{
+    InputImagePath = "input.png",
+    OutputImagePath = "output_binarized.txt",
+    GreyScale = true,
+    ImageWidth = 64,
+    ImageHeight = 64,
+    GreyThreshold = 128
+});
+binarizer.Run();
+
+// Step 2: Load binarized image into 1D binary array
+var binaryPixels = File.ReadAllLines("output_binarized.txt")
+                      .SelectMany(line => line.Select(ch => ch == '1' ? 1 : 0))
+                      .ToArray();
+
+```
 
 **SDR Generation**:
 after binarization it goes through sp for a better organized sdr values, then This transformed image is stored as an SDR.
-Both of the HTM (Hierarchical Temporal Memory) and KNN (K-Nearest Neighbors) classifiers are trained using the SDR data. These classifies are for measurement of the likeness of the original image to the reconstructed image. The steps in the training procedure of every classifier is given below:
+Both of the HTM (Hierarchical Temporal Memory) and KNN (K-Nearest Neighbors) classifiers are trained using the SDR data. 
+```csharp
+// Step 3: Generate SDR using HTM Spatial Pooler
+var config = new HtmConfig {
+    InputDimensions = new[] { 64, 64 },
+    ColumnDimensions = new[] { 64, 64 }
+};
+var connections = new Connections(config);
+var spatialPooler = new SpatialPooler();
+spatialPooler.Init(connections);
+
+var sdr = new int[config.NumColumns];
+spatialPooler.compute(binaryPixels, sdr, learn: true);
+```
+These classifies are for measurement of the likeness of the original image to the reconstructed image. The steps in the training procedure of every classifier is given below:
 # Classifier Training:
 **HTM**:
 HTM Classifier is focused around the concept of Temporal Memory, The HTM classifier utilizes a spatial pooler for training to capture a set of images. The HTM classifier’s training was done with a spatial pooler to grab the images’ spatial features. It is then followed by a set training cycle of 20 repetitions in order to ensure that the model is able to adapt and comprehend meaningful representations of the images that were fed into it. To feed the model data, HTM uses columns and cells to form representations of the input data (SDR), which is referred to as a SDR.
 
+## HTM Image Classification using Temporal Memory
+
+This example shows how to use the `HtmImageClassifier` to learn image SDRs and predict future inputs using HTM's Temporal Memory.
+
+```csharp
+// Initialize the HTM-based image classifier
+var htm = new HtmImageClassifier(width: 64, height: 64);
+
+// Train with SDRs (e.g., from binarized and spatial pooled images)
+htm.Learn(imageSdr1, null);
+htm.Learn(imageSdr2, null);
+// Feed in more SDRs as a sequence...
+
+// Reset Temporal Memory between training and inference if needed
+htm.ResetTemporalMemory();
+
+// Predict the next likely SDR
+var predicted = htm.GetPredictedInputValue(null);
+
+// Compare or visualize the predicted SDR
+Console.WriteLine("Predicted SDR:");
+Console.WriteLine(string.Join(",", predicted));
+```
+
+The classifier uses the predictive cells from HTM's Temporal Memory to reconstruct an expected future input and finds the closest match from the training SDRs based on overlap.
+
+
 **KNN**:
 The KNN classifier is one of the simplest classifiers to use, but also one of the most effective at the same time in regards to classifying data, which is based off computational similarity to the closest training examples for that particular feature. In this instance, the training examples are the binarized images. The classifier “guesses” the class label based on the input SDRs and trains SDRs by calculating the similarity of the input SDRs and the training SDRs.
+
+## k-NN Image Classifier using SDR Matching
+
+This example demonstrates how to use the `KnnImageClassifier` to learn binarized image SDRs and predict the most similar one based on overlap.
+
+```csharp
+// Initialize the k-NN image classifier
+var knn = new KnnImageClassifier();
+
+// Learn SDRs (e.g., from binarized and spatial pooled images)
+knn.Learn(imageSdr1, null);
+knn.Learn(imageSdr2, null);
+// Add more SDRs as needed...
+
+// Predict the most likely matching SDR
+var predicted = knn.GetPredictedInputValue(predictiveCells);
+
+// Display the predicted SDR
+Console.WriteLine("Predicted SDR:");
+Console.WriteLine(string.Join(",", predicted));
+```
+
+The classifier stores each learned SDR and compares them using overlap-based similarity to predict the closest match when given HTM predictive cells.
+
 
 **Reconstruction**:
 Now that all classifiers have had their training done, the image reconstruction task is performed as with both the HTM and KNN classifiers. The process of reconstruction requires taking an input SDR, providing it to the classifiers, then recreating the input image guided by the learned representations. During this process, the SDR output by the classifier is checked against the original SDR to compare for likeness as a measure of which the classifier’s capabilities.
 HTM utilizes its memory to generate a prediction of the SDR, based on the learned representations. After that, similarity measures help one to compare the rebuilt picture with the original. KNN contrasts training set stored SDRs with input SDR.  Based on these closest matches, it reconstructs the picture and notes the most comparable SDRs. 
 
+## Reconstructing Images from SDRs using HTM and k-NN
+
+This example shows how to reconstruct images using both the HTM and k-NN classifiers. The reconstructed SDRs are saved as images and `.txt` files for visual and quantitative evaluation.
+
+```csharp
+// Paths
+string sdrFolder = "SDR_Values";
+string outputHtmFolder = "ReconstructedImages/HTM";
+string outputKnnFolder = "ReconstructedImages/kNN";
+string reconstructedHtmSdrFolder = "ReconstructedSDRs/HTM";
+string reconstructedKnnSdrFolder = "ReconstructedSDRs/kNN";
+
+// Classifiers
+var htmClassifier = new HtmImageClassifier(64, 64);
+var knnClassifier = new KnnImageClassifier();
+
+// Pre-train both classifiers on all SDRs
+foreach (var sdrFile in Directory.GetFiles(sdrFolder, "*.txt")
+                                 .Where(f => !f.EndsWith("_binarized.txt")))
+{
+    int[] sdr = File.ReadAllText(sdrFile)
+        .Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+        .Select(int.Parse)
+        .ToArray();
+
+    htmClassifier.Learn(sdr, null);
+    knnClassifier.Learn(sdr, null);
+}
+
+// Run HTM reconstruction
+var htmReconstructor = new HtmImageReconstructor();
+htmReconstructor.RunReconstruction(
+    sdrFolder, outputHtmFolder, reconstructedHtmSdrFolder, htmClassifier);
+
+// Run k-NN reconstruction
+var knnReconstructor = new KnnImageReconstructor();
+knnReconstructor.RunReconstruction(
+    sdrFolder, outputKnnFolder, reconstructedKnnSdrFolder, knnClassifier);
+```
+
+Both reconstructor classes:
+- Load SDRs from files.
+- Predict the next or most similar SDR using their classifier.
+- Save the reconstructed SDR and generate a visual `.png` image.
+- Gray pixels in the image show mismatches between original and reconstructed SDRs.
+
+
 **Similarity Evaluation**: 
 The efficiency of both classifiers in image reconstruction is assessed by calculating the similarity between the original SDR and the rebuilt SDR using the following metrics: Jaccard Similarity is basically a similarity metric based on sets that computes the ratio of the intersection to the union of two sets.  It assesses the similarity between two SDRs by analyzing their non-zero components. The second similarity is Cosine Similarity metric which calculates the cosine of the angle between two vectors, and represent the SDRs in a high-dimensional space.  It is used to assess the similarity of the two SDRs about their orientation. Hamming Distance: A bitwise comparison metric that calculates the number of differing bits between two SDRs. It is used to measure the binary similarity between SDRs.
+
+## Comparing Original and Reconstructed SDRs
+
+After reconstructing images from SDRs using both HTM and k-NN classifiers, the program compares the reconstructed SDRs against the original ones using multiple similarity metrics:
+
+- **Cosine Similarity**  
+- **Jaccard Similarity**  
+- **Hamming Similarity**  
+- **Hybrid Score** (average of the three)
+
+```csharp
+// Compare original SDRs with HTM and k-NN reconstructed SDRs
+var similarityResults = CompareOriginalAndReconstructedSDRs(
+    sdrFolder: "SDR_Values",
+    reconstructedSdrFolder: "Reconstructed_SDRs"
+);
+
+foreach (var result in similarityResults)
+{
+    string name = result.Key;
+    double htmSim = result.Value.htmSim;
+    double knnSim = result.Value.knnSim;
+
+    Console.WriteLine($"{name}: HTM = {htmSim:F2}%, k-NN = {knnSim:F2}%");
+}
+```
+
+Each SDR is compared bit-by-bit and scored using:
+
+```csharp
+// Hybrid similarity = average of cosine, jaccard, and hamming
+double hybrid = (cosine + jaccard + hamming) / 3.0;
+```
+
+The results are plotted side-by-side in a bar graph to visually compare reconstruction quality for each method.
+
 
 **Visualization**: 
 For the purpose of visualizing the results of the similarity computations, a bar graph is used. We display the similarity scores of each picture, both HTM and KNN, to facilitate a clear comparison between the two classifiers. We construct the graph and then store it in the selected folder. Various colors are used to depict the HTM and KNN results in the bar graph, and labels are used to indicate the percentages of similarity between the two sets of results.
 The last step of our project include a comparison of the similarity scores of the HTM and KNN classifiers. The assessment underlines the following elements: HTM typically captures the structural representations and temporal patterns of images, resulting in better similarity ratings. When the training set consists of similar images, KNN performs well; yet, it is less successful in generalizing acro/ss many patterns. This results in, often, lower similarity scores than HTM. The capacity of the HTM and KNN classifiers to correctly reconstruct input images was assessed. We used a comparison of original and reconstructed images for each classifier to produce graphs that displayed the respective classifier performance. 
+
+## Visualizing Reconstruction Similarity
+
+After computing similarity scores for each image, the results are visualized using a bar chart that compares HTM and k-NN reconstruction quality side-by-side.
+
+```csharp
+// Generate bar graph comparing HTM vs. k-NN hybrid similarity
+GenerateSimilarityGraph(similarityResults);
+```
+
+The graph is saved as:
+
+```
+SimilarityPlots_Image_Inputs/SimilarityComparison_Improved.png
+```
+
+Each bar group shows:
+- **Blue bar**: HTM Hybrid Similarity (%)
+- **Green bar**: k-NN Hybrid Similarity (%)
+- **Gray baseline**: 0% reference line
+
+```csharp
+// Draw HTM and k-NN bars for each input image
+foreach (var result in similarityResults)
+{
+    string name = result.Key;
+    double htmSim = result.Value.htmSim;
+    double knnSim = result.Value.knnSim;
+
+    int htmHeight = (int)((htmSim / 100.0) * maxHeight);
+    int knnHeight = (int)((knnSim / 100.0) * maxHeight);
+
+    g.FillRectangle(Brushes.Blue, x, baseY - htmHeight, barWidth, htmHeight);
+    g.FillRectangle(Brushes.Green, x + barWidth + 2, baseY - knnHeight, barWidth, knnHeight);
+    
+    g.DrawString($"{htmSim:F1}%", font, Brushes.Blue, x, baseY - htmHeight - 15);
+    g.DrawString($"{knnSim:F1}%", font, Brushes.Green, x + barWidth + 2, baseY - knnHeight - 15);
+}
+```
+
+This makes it easy to visually assess which classifier performs better for each image in the dataset.
+
 
 for the output files the folder structure is as follows
 neocortexapi\source\Samples\NeoCortexApiSample\bin\Debug\net8.0\
