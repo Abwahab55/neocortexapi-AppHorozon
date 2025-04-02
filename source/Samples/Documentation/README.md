@@ -306,6 +306,33 @@ neocortexapi\source\Samples\NeoCortexApiSample\bin\Debug\net8.0\
 
 **Similarity comparison**: https://github.com/Abwahab55/neocortexapi-AppHorozon/tree/AppHorozon/source/Samples/Documentation/result/SimilarityComparison_Improved.png
 
+## Project Folder Structure
+  
+```C:\Software Engineering Project\neocortexapi\source\Samples\
+│
+├── NeoCortexApiSample.sln                       # Visual Studio solution file
+│
+├── NeoCortexApiSample\                          # Main project folder
+│   ├── Program.cs                                # Main execution logic
+│   ├── HtmImageClassifier.cs                     # HTM-based classifier
+│   ├── KnnImageClassifier.cs                     # k-NN-based classifier
+│   ├── HtmImageReconstructor.cs                  # HTM reconstruction logic
+│   ├── KnnImageReconstructor.cs                  # k-NN reconstruction logic
+│   ├── ImageBinarizerSpatialPattern.cs           # Binarization and SDR encoding
+│   ├── Sample\                                   # Input images (grayscale)
+│   └── bin\Debug\net8.0\                         # Output artifacts:
+│       ├── SDR_Values\                           # Encoded SDRs (original)
+│       ├── Reconstructed_SDRs\                   # Predicted SDRs
+│       ├── ReconstructedImages\                  # Reconstructed PNGs
+│       └── SimilarityPlots_Image_Inputs\         # HTM vs. k-NN similarity graphs
+│
+├── NeoCortexApiSample1.Tests\                   # MSTest unit tests
+│   └── [Tests for classifiers and reconstructor components] 
+
+```
+This solution is designed to decouple the main pipeline from the testing parts and the artifacts it produces. All the application logic is organized within the Source/Sample project. Input images are stored in the Sample folder, whereas output images, SDRs, and graphs are directed into the default bin\Debug\net8.0 runtime folder. Unit tests for classifier and reconstructor behaviors are placed in a separate NeoCortexApiSample1.Tests project. Such modular structure enhances system maintainability and allows reproducible assessment.Program.cs is used as a pipeline for the project and logics like similarity calculation and all the runs happen here,so the code blocks remain scalable and reusable. reconstruction and classifier logics have been used in different files for the same purpose.
+
+
 ## Running the Project
 
 **Dependencies:**
