@@ -16,7 +16,7 @@ namespace NeoCortexApiSample
         private readonly int k; // Number of nearest neighbors to consider
 
         // Constructor to set image dimensions and value of k
-        public KnnImageReconstructor(int width = 64, int height = 64, int k = 1)
+        public KnnImageReconstructor(int width = 64, int height = 64, int k = 5)
         {
             imageWidth = width;
             imageHeight = height;
