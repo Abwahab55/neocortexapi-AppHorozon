@@ -6,7 +6,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\NeoCortexApiSample\NeoCortexApiSample.csproj" />
+		<ProjectReference Include="..\..\Samples\NeoCortexApiSample\NeoCortexApiSample.csproj" />
 	</ItemGroup>
 
 
