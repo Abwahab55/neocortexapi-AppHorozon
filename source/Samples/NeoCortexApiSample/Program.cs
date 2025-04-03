@@ -59,7 +59,7 @@ namespace NeoCortexApiSample
             var htmReconstructor = new HtmImageReconstructor();
             htmReconstructor.RunReconstruction(sdrFolder, outputFolder, reconstructedSdrFolder, htmClassifier, 64, 64);
 
-            var knnReconstructor = new KnnImageReconstructor(64, 64, k: 5);
+            var knnReconstructor = new KnnImageReconstructor(64, 64, k: 1);
             knnReconstructor.RunReconstruction(sdrFolder, outputFolder, reconstructedSdrFolder, knnClassifier);
 
             // Step 5: Compare reconstructed SDRs against original SDRs
