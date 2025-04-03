@@ -3,41 +3,36 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using NeoCortexApi.Classifiers;
-using NeoCortexApi.Entities;
 using System.Collections.Generic;
 
 namespace NeoCortexApiSample
 {
-    /// <summary>
-    /// Responsible for reconstructing images from SDRs using a k-NN classifier.
-    /// The process includes loading SDRs, predicting reconstructed versions,
-    /// saving new SDRs, and creating visual output as images.
-    /// </summary>
+    // This class handles the image reconstruction process using a k-NN classifier.
+    // It predicts SDRs based on input SDRs and generates corresponding images.
     public class KnnImageReconstructor
     {
         private readonly int imageWidth;
         private readonly int imageHeight;
-        private readonly int k;
+        private readonly int k; // Number of nearest neighbors to consider
 
-        public KnnImageReconstructor(int width = 64, int height = 64, int k = 5)
+        // Constructor to set image dimensions and value of k
+        public KnnImageReconstructor(int width = 64, int height = 64, int k = 1)
         {
             imageWidth = width;
             imageHeight = height;
             this.k = k;
         }
 
-        /// <summary>
-        /// Reconstructs images by predicting SDRs using a k-NN classifier,
-        /// adds noise for realism, and generates image files.
-        /// </summary>
+        // Main method to perform reconstruction using input SDRs and a k-NN classifier
         public void RunReconstruction(string sdrFolder, string outputImageFolder,
                                       string reconstructedSdrFolder,
                                       IClassifier<int[], string> classifier)
         {
+            // Ensure output folders exist
             Directory.CreateDirectory(outputImageFolder);
             Directory.CreateDirectory(reconstructedSdrFolder);
 
-            // Load all SDR files, excluding binarized versions
+            // Filter out original SDR files (excluding binarized ones)
             var sdrFiles = Directory.GetFiles(sdrFolder, "*.txt")
                 .Where(file => !file.EndsWith("_binarized.txt")).ToArray();
 
@@ -49,26 +44,26 @@ namespace NeoCortexApiSample
 
                 try
                 {
-                    // Load original SDR from file
+                    // Read original SDR from text file
                     int[] originalSdr = File.ReadAllText(sdrFile)
                         .Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
                         .Select(int.Parse).ToArray();
 
-                    // Predict top-k closest SDRs using k-NN
+                    // Use the classifier to predict k closest SDRs
                     var predictions = classifier.GetPredictedInputValues(originalSdr, (short)k);
 
-                    // Reconstruct SDR via weighted voting
+                    // Perform weighted voting over k predictions to get a reconstructed SDR
                     int[] reconstructedSdr = predictions.Count > 0
                         ? WeightedVoting(predictions)
-                        : originalSdr;
+                        : originalSdr; // Fallback to original if no prediction is returned
 
-                    // Optionally add noise to simulate imperfect predictions
+                    // Optionally, add noise to reduce overfitting and simulate imperfections
                     reconstructedSdr = AddNoiseToSdr(reconstructedSdr, noiseBits: 400);
 
-                    // Save reconstructed SDR to disk
+                    // Save the reconstructed SDR as a text file
                     File.WriteAllText(outSdrPath, string.Join(",", reconstructedSdr));
 
-                    // Convert SDR to image and save as PNG
+                    // Create and save the visual image based on the reconstructed SDR
                     using (Bitmap bmp = new Bitmap(imageWidth, imageHeight))
                     {
                         for (int i = 0; i < reconstructedSdr.Length; i++)
@@ -76,14 +71,13 @@ namespace NeoCortexApiSample
                             int x = i % imageWidth;
                             int y = i / imageWidth;
 
-                            // Visualize matching pixels as black/white, mismatches as gray
+                            // Use gray color to indicate differences from original SDR
                             Color color = reconstructedSdr[i] == originalSdr[i]
                                 ? (reconstructedSdr[i] == 1 ? Color.Black : Color.White)
                                 : Color.Gray;
 
                             bmp.SetPixel(x, y, color);
                         }
-
                         bmp.Save(outImagePath);
                     }
                 }
@@ -94,10 +88,7 @@ namespace NeoCortexApiSample
             }
         }
 
-        /// <summary>
-        /// Performs weighted voting across the top-k predictions.
-        /// Each bit is set to 1 or 0 based on the total similarity score.
-        /// </summary>
+        // Combines predictions from multiple neighbors using similarity-weighted voting
         private int[] WeightedVoting(List<ClassifierResult<int[]>> predictions)
         {
             int length = predictions[0].PredictedInput.Length;
@@ -105,29 +96,30 @@ namespace NeoCortexApiSample
 
             for (int i = 0; i < length; i++)
             {
+                // Score for bits set to 1 based on similarity weights
                 double onesScore = predictions
                     .Where(p => p.PredictedInput[i] == 1)
                     .Sum(p => p.Similarity);
 
+                // Score for bits set to 0
                 double zerosScore = predictions
                     .Where(p => p.PredictedInput[i] == 0)
                     .Sum(p => p.Similarity);
 
+                // Choose the bit with the higher cumulative similarity
                 votedSdr[i] = onesScore >= zerosScore ? 1 : 0;
             }
 
             return votedSdr;
         }
 
-        /// <summary>
-        /// Adds noise by flipping a fixed number of bits in the SDR.
-        /// Useful to simulate slight variation and avoid perfect overlap.
-        /// </summary>
+        // Randomly flip a fixed number of bits in the SDR to simulate noise or prediction error
         private static int[] AddNoiseToSdr(int[] sdr, int noiseBits = 20)
         {
             var rand = new Random();
             var noisy = (int[])sdr.Clone();
 
+            // Randomly pick bit positions to flip
             var indices = Enumerable.Range(0, sdr.Length)
                                     .OrderBy(_ => rand.Next())
                                     .Take(noiseBits);
